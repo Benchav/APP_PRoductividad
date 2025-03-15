@@ -43,6 +43,7 @@ const NotesScreen = ({ navigation }) => {
         mode="outlined"
         multiline
         style={styles.input}
+        numberOfLines={6} // Aumentando el tamaño de la caja de texto
       />
 
       <Button icon="camera" mode="contained" onPress={pickImage} style={styles.button}>
@@ -63,7 +64,7 @@ const NotesScreen = ({ navigation }) => {
         <Text style={styles.fileText}>Archivo seleccionado: {document.split("/").pop()}</Text>
       )}
 
-      <Button mode="contained" onPress={() => navigation.goBack()} style={styles.buttonBack}>
+      <Button mode="contained" onPress={() => navigation.goBack()} style={[styles.button, styles.buttonBack]}>
         Volver al Inicio
       </Button>
     </ScrollView>
@@ -74,24 +75,47 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#FAFAFA", // Color de fondo más suave
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
+    fontSize: 28,
+    fontWeight: "600",
+    marginBottom: 20,
     textAlign: "center",
     color: "#333",
   },
   input: {
-    marginBottom: 15,
+    marginBottom: 20,
     backgroundColor: "#fff",
+    height: 180, // Haciendo la caja de texto más grande y espaciosa
+    borderRadius: 12, // Bordes redondeados
+    padding: 15,
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.1, 
+    shadowRadius: 5,
+    elevation: 3, // Añadiendo sombra sutil
   },
   button: {
-    marginVertical: 10,
+    marginVertical: 12,
+    backgroundColor: "#4A90E2", // Celeste
+    borderRadius: 8, // Bordes redondeados para los botones
+  },
+  buttonBack: {
+    marginTop: 30,
+    backgroundColor: "#4A90E2",
+    paddingVertical: 12,
+    borderRadius: 10,
   },
   card: {
-    marginVertical: 10,
+    marginVertical: 12,
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 3, // Sombra suave alrededor de la tarjeta
     padding: 10,
     alignItems: "center",
   },
@@ -101,13 +125,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   fileText: {
-    marginTop: 10,
+    marginTop: 12,
     fontSize: 16,
     textAlign: "center",
     color: "#555",
-  },
-  buttonBack: {
-    marginTop: 20,
+    fontStyle: "italic",
   },
 });
 
