@@ -10,6 +10,8 @@ import TasksScreen from "../screens/TasksScreen";
 import CalendarScreen from "../screens/CalendarScreen";
 import NotesScreen from "../screens/NotesScreen";
 import FocusModeScreen from "../screens/FocusModeScreen";
+import LoginScreen from "../screens/LoginScreen"; 
+import RegisterScreen from "../screens/RegisterScreen";
 
 // Creamos los navegadores
 const Stack = createStackNavigator();
@@ -57,6 +59,8 @@ const AppNavigator = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+      <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>

@@ -43,17 +43,24 @@ const HomeScreen = () => {
         <View style={styles.buttonContainer}>
           <Button
             mode="contained"
-            onPress={() => navigation.navigate("Tasks")} // Navegar a TasksScreen
+            onPress={() => navigation.navigate("Tasks")} 
             style={styles.button}
           >
             Ver Tareas
           </Button>
           <Button
             mode="contained"
-            onPress={() => navigation.navigate("Calendar")} // Navegar a CalendarScreen
+            onPress={() => navigation.navigate("Calendar")} 
             style={[styles.button, styles.focusButton]}
           >
             Ver Calendario
+          </Button>
+          <Button
+            mode="contained"
+            onPress={() => navigation.navigate("Login")} 
+            style={styles.button}
+          >
+            Salir
           </Button>
         </View>
       </View>
