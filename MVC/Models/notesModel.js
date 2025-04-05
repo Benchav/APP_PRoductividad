@@ -1,4 +1,5 @@
-let noteData = { text: "", image: null, document: null };
+//let noteData = { text: "", image: null, document: null };
+let noteData = { text: "", image: null};
 
 const notesModel = {
   getNote: () => {
@@ -10,9 +11,9 @@ const notesModel = {
   saveImage: (imageUri) => {
     noteData.image = imageUri;
   },
-  saveDocument: (docUri) => {
+ /* saveDocument: (docUri) => {
     noteData.document = docUri;
-  },
+  },*/
 };
 
 export default notesModel;

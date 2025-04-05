@@ -3,12 +3,12 @@ import { View, ScrollView, StyleSheet } from "react-native";
 import { Text, TextInput, Button } from "react-native-paper";
 import notesController from "../Controllers/notesController";
 import ImagePreview from "../../Components/ImagePreview";
-//import ImagePreview from ".../Components/ImagePreview";
+
 
 const NotesViews = ({ navigation }) => {
   const [note, setNote] = useState("");
   const [image, setImage] = useState(null);
-  const [document, setDocument] = useState(null);
+ // const [document, setDocument] = useState(null);
 
   useEffect(() => {
     const savedNote = notesController.getNote();
@@ -20,10 +20,10 @@ const NotesViews = ({ navigation }) => {
     if (selectedImage) setImage(selectedImage);
   };
 
-  const pickDocument = async () => {
+ /* const pickDocument = async () => {
     const selectedDocument = await notesController.pickDocument();
     if (selectedDocument) setDocument(selectedDocument);
-  };
+  };*/
 
   return (
     <ScrollView style={styles.container}>
@@ -45,13 +45,17 @@ const NotesViews = ({ navigation }) => {
 
       {image && <ImagePreview uri={image} />}
 
-      <Button icon="file" mode="contained" onPress={pickDocument} style={styles.button}>
+ {/*
+     <Button icon="file" mode="contained" onPress={pickDocument} style={styles.button}>
         Agregar Archivo
       </Button>
 
       {document && (
         <Text style={styles.fileText}>Archivo seleccionado: {document.split("/").pop()}</Text>
       )}
+
+      */}
+      
 
       <Button mode="contained" onPress={() => navigation.goBack()} style={[styles.button, styles.buttonBack]}>
         Volver al Inicio
