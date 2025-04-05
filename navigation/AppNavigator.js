@@ -3,21 +3,22 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { NavigationRef } from "./NavigationRef";
 
-// Importamos las pantallas
-import HomeScreen from "../screens/HomeScreen";
-import TasksScreen from "../screens/TasksScreen";
-import CalendarScreen from "../screens/CalendarScreen";
-import NotesScreen from "../screens/NotesScreen";
-import FocusModeScreen from "../screens/FocusModeScreen";
-import LoginScreen from "../screens/LoginScreen"; 
-import RegisterScreen from "../screens/RegisterScreen";
+import HomeViews from "../MVC/Views/HomeViews";
+import TasksViews from "../MVC/Views/TasksViews";
+import CalendarViews from "../MVC/Views/CalendarViews";
+//import CalendarViews from "../Views/CalendarViews";
+import NotesViews from "../MVC/Views/NotesViews";
+import LoginViews from "../MVC/Views/LoginViews";
+import RegisterViews from "../MVC/Views/RegisterViews";
+import FocusModeViews from "../MVC/Views/FocusModeViews";
 
-// Creamos los navegadores
+
+// Navegadores
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Función para la navegación por pestañas
 const BottomTabNavigator = () => {
   return (
     <Tab.Navigator
@@ -25,16 +26,22 @@ const BottomTabNavigator = () => {
         tabBarIcon: ({ color, size }) => {
           let iconName;
 
-          if (route.name === "Home") {
-            iconName = "home";
-          } else if (route.name === "Tasks") {
-            iconName = "checkmark-done";
-          } else if (route.name === "Calendar") {
-            iconName = "calendar";
-          } else if (route.name === "Notes") {
-            iconName = "document-text";
-          } else if (route.name === "Focus") {
-            iconName = "timer";
+          switch (route.name) {
+            case "Home":
+              iconName = "home";
+              break;
+            case "Tasks":
+              iconName = "checkmark-done";
+              break;
+            case "Calendar":
+              iconName = "calendar";
+              break;
+            case "Notes":
+              iconName = "document-text";
+              break;
+            case "Focus":
+              iconName = "timer";
+              break;
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -45,11 +52,11 @@ const BottomTabNavigator = () => {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ title: "Inicio" }} />
-      <Tab.Screen name="Tasks" component={TasksScreen} options={{ title: "Tareas" }} />
-      <Tab.Screen name="Calendar" component={CalendarScreen} options={{ title: "Calendario" }} />
-      <Tab.Screen name="Notes" component={NotesScreen} options={{ title: "Notas" }} />
-      <Tab.Screen name="Focus" component={FocusModeScreen} options={{ title: "Enfoque" }} />
+      <Tab.Screen name="Home" component={HomeViews} options={{ title: "Inicio" }} />
+      <Tab.Screen name="Tasks" component={TasksViews} options={{ title: "Tareas" }} />
+      <Tab.Screen name="Calendar" component={CalendarViews} options={{ title: "Calendario" }} />
+      <Tab.Screen name="Notes" component={NotesViews} options={{ title: "Notas" }} />
+      <Tab.Screen name="Focus" component={FocusModeViews} options={{ title: "Enfoque" }} />
     </Tab.Navigator>
   );
 };
@@ -57,10 +64,10 @@ const BottomTabNavigator = () => {
 // Componente principal de navegación
 const AppNavigator = () => {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={NavigationRef}>
       <Stack.Navigator>
-      <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Login" component={LoginViews} options={{ headerShown: false }} />
+        <Stack.Screen name="Register" component={RegisterViews} options={{ headerShown: false }} />
         <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>

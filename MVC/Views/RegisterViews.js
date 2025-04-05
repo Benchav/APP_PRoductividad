@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Image, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
-import { TextInput, Button, Text } from "react-native-paper";
+import { Button, Text } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
+import authController from "../Controllers/authController";
+import InputField from "../../Components/InputField";
 
-const RegisterScreen = () => {
+const RegisterViews = () => {
   const navigation = useNavigation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -12,84 +14,27 @@ const RegisterScreen = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleRegister = () => {
-    console.log("Registro con:", { name, email, password });
-    navigation.replace("Main");
-  };
-
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
-      <LinearGradient
-        colors={["#87CEEB", "#5DADE2"]}
-        style={styles.background}
-      >
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
+      <LinearGradient colors={["#87CEEB", "#5DADE2"]} style={styles.background}>
         <View style={styles.content}>
           <Image
-            source={{
-              uri: "https://th.bing.com/th/id/R.8e20650d2688f56c3415a6635e19946d?rik=1nDNqHffFfpDpg&pid=ImgRaw&r=0",
-            }}
+            source={{ uri: "https://th.bing.com/th/id/R.8e20650d2688f56c3415a6635e19946d?rik=1nDNqHffFfpDpg&pid=ImgRaw&r=0" }}
             style={styles.logo}
           />
-          
+
           <Text style={styles.title}>Crea tu cuenta en Tasko</Text>
           <Text style={styles.subtitle}>Organiza tus tareas eficientemente</Text>
 
           <View style={styles.formContainer}>
-            <TextInput
-              label="Nombre completo"
-              value={name}
-              onChangeText={setName}
-              mode="flat"
-              autoCapitalize="words"
-              style={styles.input}
-              left={<TextInput.Icon icon="account" color="#5DADE2" />}
-              theme={{ colors: { primary: "#5DADE2", background: "#fff" } }}
-            />
-
-            <TextInput
-              label="Correo electrónico"
-              value={email}
-              onChangeText={setEmail}
-              mode="flat"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={styles.input}
-              left={<TextInput.Icon icon="email" color="#5DADE2" />}
-              theme={{ colors: { primary: "#5DADE2", background: "#fff" } }}
-            />
-
-            <TextInput
-              label="Contraseña"
-              value={password}
-              onChangeText={setPassword}
-              mode="flat"
-              secureTextEntry={!showPassword}
-              style={styles.input}
-              left={<TextInput.Icon icon="lock" color="#5DADE2" />}
-              right={<TextInput.Icon 
-                icon={showPassword ? "eye-off" : "eye"} 
-                onPress={() => setShowPassword(!showPassword)}
-              />}
-              theme={{ colors: { primary: "#5DADE2", background: "#fff" } }}
-            />
-
-            <TextInput
-              label="Confirmar contraseña"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              mode="flat"
-              secureTextEntry={!showPassword}
-              style={styles.input}
-              left={<TextInput.Icon icon="lock-check" color="#5DADE2" />}
-              theme={{ colors: { primary: "#5DADE2", background: "#fff" } }}
-            />
+            <InputField label="Nombre completo" value={name} onChangeText={setName} icon="account" />
+            <InputField label="Correo electrónico" value={email} onChangeText={setEmail} icon="email" keyboardType="email-address" />
+            <InputField label="Contraseña" value={password} onChangeText={setPassword} icon="lock" secureTextEntry={!showPassword} />
+            <InputField label="Confirmar contraseña" value={confirmPassword} onChangeText={setConfirmPassword} icon="lock-check" secureTextEntry={!showPassword} />
 
             <Button
               mode="contained"
-              onPress={handleRegister}
+              onPress={() => authController.handleRegister(name, email, password, confirmPassword, navigation)}
               style={styles.button}
               labelStyle={styles.buttonLabel}
               contentStyle={styles.buttonContent}
@@ -110,7 +55,6 @@ const RegisterScreen = () => {
   );
 };
 
-// Reutilizamos los mismos estilos del LoginScreen
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -153,11 +97,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 10,
   },
-  input: {
-    marginBottom: 20,
-    backgroundColor: "#F8FBFF",
-    borderRadius: 10,
-  },
   button: {
     marginTop: 10,
     borderRadius: 10,
@@ -190,4 +129,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RegisterScreen;
+export default RegisterViews;

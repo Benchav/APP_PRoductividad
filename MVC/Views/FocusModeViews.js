@@ -1,50 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert } from "react-native";
-import { Audio } from "expo-av";
+import focusModeController from "../Controllers/focusModeController";
 
-const FocusModeScreen = ({ navigation }) => {
+const FocusModeViews = ({ navigation }) => {
   const [timeLeft, setTimeLeft] = useState(1 * 60); // 1 minuto por defecto
   const [isRunning, setIsRunning] = useState(false);
-  const [sound, setSound] = useState(null);
   const [userTime, setUserTime] = useState(1); // Tiempo inicial de 1 minuto
 
-  // URL del sonido de alarma
-  const alarmUrl = "https://www.epidemicsound.com/es/sound-effects/tracks/69357bdc-9bc6-4ba4-934f-a0ae95f87d35/";
-
-  // Función para manejar el temporizador
   useEffect(() => {
     let timer;
     if (isRunning && timeLeft > 0) {
       timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
     } else if (timeLeft === 0) {
-      playSound();
+      focusModeController.playSound();
     }
     return () => clearInterval(timer);
   }, [isRunning, timeLeft]);
 
-  // Función para reproducir sonido
-  const playSound = async () => {
-    try {
-      const { sound } = await Audio.Sound.createAsync({ uri: alarmUrl });
-      setSound(sound);
-      await sound.playAsync();
-    } catch (error) {
-      console.error("Error al reproducir sonido:", error);
-    }
-  };
-
-  useEffect(() => {
-    return sound ? () => sound.unloadAsync() : undefined;
-  }, [sound]);
-
-  // Convertir segundos a formato mm:ss
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  // Función para manejar el cambio de tiempo
   const handleSetTime = () => {
     const timeInSeconds = userTime * 60; // Convertir minutos a segundos
     if (userTime <= 0) {
@@ -57,7 +29,7 @@ const FocusModeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Modo Enfoque</Text>
-      <Text style={styles.timer}>{formatTime(timeLeft)}</Text>
+      <Text style={styles.timer}>{focusModeController.formatTime(timeLeft)}</Text>
 
       <View style={styles.inputContainer}>
         <TextInput
@@ -99,7 +71,7 @@ const FocusModeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F2F2F2", // Fondo claro y neutro
+    backgroundColor: "#F2F2F2",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
@@ -107,13 +79,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 30,
     fontWeight: "600",
-    color: "#333", // Título con color más oscuro
+    color: "#333",
     marginBottom: 40,
   },
   timer: {
     fontSize: 72,
     fontWeight: "500",
-    color: "#333", // Color del temporizador más sobrio
+    color: "#333",
     marginBottom: 40,
   },
   inputContainer: {
@@ -124,7 +96,7 @@ const styles = StyleSheet.create({
   input: {
     height: 45,
     width: 120,
-    borderColor: "#ddd", // Borde más suave
+    borderColor: "#ddd",
     borderWidth: 1,
     borderRadius: 8,
     color: "#333",
@@ -133,7 +105,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   buttonSetTime: {
-    backgroundColor: "#4A90E2", // Azul suave
+    backgroundColor: "#4A90E2",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -147,13 +119,13 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   buttonStart: {
-    backgroundColor: "#4CAF50", // Verde suave
+    backgroundColor: "#4CAF50",
   },
   buttonStop: {
-    backgroundColor: "#E74C3C", // Rojo suave
+    backgroundColor: "#E74C3C",
   },
   buttonReset: {
-    backgroundColor: "#F39C12", // Naranja suave
+    backgroundColor: "#F39C12",
     width: 200,
     paddingVertical: 12,
     borderRadius: 8,
@@ -161,7 +133,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   buttonBack: {
-    backgroundColor: "#BDC3C7", // Gris suave
+    backgroundColor: "#BDC3C7",
     width: 200,
     paddingVertical: 12,
     borderRadius: 8,
@@ -175,4 +147,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FocusModeScreen;
+export default FocusModeViews;

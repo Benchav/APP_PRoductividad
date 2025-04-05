@@ -10,6 +10,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~4.0.1",
     "@react-navigation/bottom-tabs": "^7.2.1",
     "@react-navigation/native": "^7.0.15",
     "@react-navigation/stack": "^7.1.2",
@@ -20,6 +21,7 @@
     "expo-linear-gradient": "~14.0.2",
     "expo-status-bar": "~2.0.1",
     "react": "18.3.1",
+    "react-dom": "18.3.1",
     "react-native": "0.76.7",
     "react-native-calendars": "^1.1310.0",
     "react-native-gesture-handler": "^2.24.0",
@@ -27,10 +29,13 @@
     "react-native-reanimated": "^3.17.1",
     "react-native-safe-area-context": "^5.3.0",
     "react-native-screens": "^4.9.1",
-    "react-native-vector-icons": "^10.2.0"
+    "react-native-vector-icons": "^10.2.0",
+    "react-native-web": "~0.19.13"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "@react-native-community/cli": "^18.0.0",
+    "@react-native/metro-config": "^0.78.2"
   },
   "private": true
 }

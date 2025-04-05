@@ -2,11 +2,9 @@ import React from "react";
 import { View, StyleSheet, ImageBackground, Image } from "react-native";
 import { Button, Card, Text } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import homeController from "../Controllers/homeController";
 
-const HomeScreen = () => {
-  const navigation = useNavigation(); // Asegura que navigation esté disponible
-
+const HomeViews = () => {
   return (
     <ImageBackground
       source={{
@@ -29,37 +27,23 @@ const HomeScreen = () => {
           </Card.Content>
         </Card>
 
-        {/* Espacio para agregar una imagen por URL */}
         <View style={styles.imageContainer}>
           <Image
             source={{
-              uri: "https://blogimage.vantagecircle.com/content/images/2022/07/productividad-de-los-empleados-en-el-lugar-de-trabajo.png", // Reemplaza con tu URL de imagen
+              uri: "https://blogimage.vantagecircle.com/content/images/2022/07/productividad-de-los-empleados-en-el-lugar-de-trabajo.png",
             }}
             style={styles.image}
           />
         </View>
 
-        {/* Botones para redirigir */}
         <View style={styles.buttonContainer}>
-          <Button
-            mode="contained"
-            onPress={() => navigation.navigate("Tasks")} 
-            style={styles.button}
-          >
+          <Button mode="contained" onPress={homeController.goToTasks} style={styles.button}>
             Ver Tareas
           </Button>
-          <Button
-            mode="contained"
-            onPress={() => navigation.navigate("Calendar")} 
-            style={[styles.button, styles.focusButton]}
-          >
+          <Button mode="contained" onPress={homeController.goToCalendar} style={[styles.button, styles.focusButton]}>
             Ver Calendario
           </Button>
-          <Button
-            mode="contained"
-            onPress={() => navigation.navigate("Login")} 
-            style={styles.button}
-          >
+          <Button mode="contained" onPress={homeController.logout} style={styles.button}>
             Salir
           </Button>
         </View>
@@ -116,7 +100,7 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   imageContainer: {
-    marginVertical: 20, // Espacio adicional entre el texto y la imagen
+    marginVertical: 20,
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
@@ -125,7 +109,7 @@ const styles = StyleSheet.create({
     width: 300,
     height: 200,
     borderRadius: 10,
-    resizeMode: "cover", // Esto asegura que la imagen no se distorsione
+    resizeMode: "cover",
   },
   buttonContainer: {
     width: "100%",
@@ -141,4 +125,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen;
+export default HomeViews;
