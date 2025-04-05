@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Image, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
-import { Button, Text } from "react-native-paper";
+import { Button, Text, ActivityIndicator } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import authController from "../Controllers/authController";
@@ -13,6 +13,21 @@ const RegisterViews = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleRegister = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+
+    const response = await authController.handleRegister(name, email, password, confirmPassword, navigation);
+    
+    setIsLoading(false);
+
+    if (!response.success) {
+      setErrorMessage(response.message);  // 🔥 Muestra error desde controller
+    }
+  };
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
@@ -32,14 +47,18 @@ const RegisterViews = () => {
             <InputField label="Contraseña" value={password} onChangeText={setPassword} icon="lock" secureTextEntry={!showPassword} />
             <InputField label="Confirmar contraseña" value={confirmPassword} onChangeText={setConfirmPassword} icon="lock-check" secureTextEntry={!showPassword} />
 
+            {/* Error */}
+            {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
             <Button
               mode="contained"
-              onPress={() => authController.handleRegister(name, email, password, confirmPassword, navigation)}
+              onPress={handleRegister}
               style={styles.button}
               labelStyle={styles.buttonLabel}
               contentStyle={styles.buttonContent}
+              disabled={isLoading}
             >
-              Registrarse
+              {isLoading ? <ActivityIndicator size="small" color="#fff" /> : "Registrarse"}
             </Button>
 
             <View style={styles.loginContainer}>
@@ -126,6 +145,11 @@ const styles = StyleSheet.create({
   loginLink: {
     color: "#5DADE2",
     fontWeight: "600",
+  },
+  errorText: {
+    color: "red",
+    textAlign: "center",
+    marginTop: 10,
   },
 });
 

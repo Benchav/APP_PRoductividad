@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Image, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
-import { Button, Text } from "react-native-paper";
+import { Button, Text, ActivityIndicator } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import authController from "../Controllers/authController";
@@ -11,6 +11,21 @@ const LoginViews = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleLogin = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+
+    const response = await authController.handleLogin(email, password, navigation);
+
+    setIsLoading(false);
+
+    if (!response.success) {
+      setErrorMessage(response.message); // Captura y muestra el mensaje desde el controller
+    }
+  };
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
@@ -20,22 +35,25 @@ const LoginViews = () => {
             source={{ uri: "https://th.bing.com/th/id/R.8e20650d2688f56c3415a6635e19946d?rik=1nDNqHffFfpDpg&pid=ImgRaw&r=0" }}
             style={styles.logo}
           />
-          
+
           <Text style={styles.title}>Bienvenido a Tasko</Text>
           <Text style={styles.subtitle}>Organiza tus tareas eficientemente</Text>
 
           <View style={styles.formContainer}>
             <InputField label="Correo electrónico" value={email} onChangeText={setEmail} icon="email" />
             <InputField label="Contraseña" value={password} onChangeText={setPassword} icon="lock" secureTextEntry={!showPassword} />
-            
+
+            {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
             <Button
               mode="contained"
-              onPress={() => authController.handleLogin(email, password, navigation)}
+              onPress={handleLogin}
               style={styles.button}
               labelStyle={styles.buttonLabel}
               contentStyle={styles.buttonContent}
+              disabled={isLoading}
             >
-              Iniciar Sesión
+              {isLoading ? <ActivityIndicator size="small" color="#fff" /> : "Iniciar Sesión"}
             </Button>
 
             <TouchableOpacity onPress={() => console.log("Recuperar contraseña")} style={styles.forgotPassword}>
@@ -134,6 +152,11 @@ const styles = StyleSheet.create({
   signupLink: {
     color: "#5DADE2",
     fontWeight: "600",
+  },
+  errorText: {
+    color: "red",
+    textAlign: "center",
+    marginTop: 10,
   },
 });
 
