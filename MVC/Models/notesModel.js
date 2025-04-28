@@ -1,4 +1,4 @@
-//let noteData = { text: "", image: null, document: null };
+///let noteData = { text: "", image: null, document: null };
 let noteData = { text: "", image: null};
 
 const notesModel = {

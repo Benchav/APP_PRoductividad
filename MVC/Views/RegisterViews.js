@@ -25,7 +25,7 @@ const RegisterViews = () => {
     setIsLoading(false);
 
     if (!response.success) {
-      setErrorMessage(response.message);  // 🔥 Muestra error desde controller
+      setErrorMessage(response.message); 
     }
   };
 

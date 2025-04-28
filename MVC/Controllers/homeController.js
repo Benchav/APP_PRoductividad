@@ -1,4 +1,3 @@
-//import { navigate } from "../navigation/NavigationRef";
 import { navigate } from "../../navigation/NavigationRef";
 
 const homeController = {

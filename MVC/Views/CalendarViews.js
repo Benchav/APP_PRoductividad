@@ -3,7 +3,7 @@ import { View, StyleSheet, Animated } from "react-native";
 import { Text, Button } from "react-native-paper";
 import { Calendar } from "react-native-calendars";
 import calendarController from "../Controllers/calendarController";
-import "../../Components/localeConfig"; // Importando la configuración de idioma
+import "../../Components/localeConfig"; 
 
 const CalendarViews = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState("");

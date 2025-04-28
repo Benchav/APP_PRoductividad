@@ -1,15 +1,26 @@
-import tasksModel from "../Models/taskModel";
+// Controllers/taskController.js
+import tasksModel from '../Models/taskModel';
 
-const tasksController = {
-  getTasks: () => {
-    return tasksModel.getAllTasks();
-  },
-  toggleTaskCompletion: (id) => {
-    return tasksModel.toggleTask(id);
-  },
-  addTask: (title) => {
-    return tasksModel.addNewTask(title);
-  },
+const getTasks = () => {
+  return tasksModel.getAllTasks();
 };
 
-export default tasksController;
+const addTask = (taskData) => {
+  // taskData es un objeto { title, description, priority, status, dueDate, tags }
+  return tasksModel.addNewTask(taskData);
+};
+
+const toggleTask = (id) => {
+  return tasksModel.toggleTask(id);
+};
+
+const deleteTask = (id) => {
+  return tasksModel.deleteTask(id);
+};
+
+export default {
+  getTasks,
+  addTask,
+  toggleTask,
+  deleteTask,
+};

@@ -23,7 +23,7 @@ const LoginViews = () => {
     setIsLoading(false);
 
     if (!response.success) {
-      setErrorMessage(response.message); // Captura y muestra el mensaje desde el controller
+      setErrorMessage(response.message); 
     }
   };
 

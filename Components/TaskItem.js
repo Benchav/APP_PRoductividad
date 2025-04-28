@@ -1,51 +1,39 @@
-import React from "react";
-import { StyleSheet } from "react-native";
-import { Card, Checkbox, Text } from "react-native-paper";
-import { Ionicons } from "@expo/vector-icons";
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { Card, Checkbox, Text, IconButton } from 'react-native-paper';
 
-const TaskItem = ({ task, toggleTaskCompletion }) => {
+export default function TaskItem({ task, onToggle, onDelete }) {
   return (
-    <Card style={[styles.taskCard, task.completed && styles.completedCard]}>
-      <Card.Content style={styles.taskItem}>
+    <Card style={[styles.card, task.completed && styles.completedCard]}>  
+      <Card.Content style={styles.row}>
         <Checkbox
-          status={task.completed ? "checked" : "unchecked"}
-          onPress={() => toggleTaskCompletion(task.id)}
-          color="#4A90E2"
+          status={task.completed ? 'checked' : 'unchecked'}
+          onPress={() => onToggle(task.id)}
         />
-        <Text style={[styles.taskText, task.completed && styles.completedTask]}>
-          {task.title}
-        </Text>
-        {task.completed && <Ionicons name="checkmark-circle" size={20} color="#4A90E2" />}
+        <View style={styles.textContainer}>
+          <Text style={[styles.title, task.completed && styles.completedText]}>
+            {task.title}
+          </Text>
+          <Text style={styles.subtitle}>
+            {task.priority} · {task.status}
+          </Text>
+        </View>
+        <IconButton
+          icon="delete-outline"
+          size={20}
+          onPress={() => onDelete(task.id)}
+        />
       </Card.Content>
     </Card>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  taskCard: {
-    marginBottom: 10,
-    backgroundColor: "#fff",
-    elevation: 4,
-    borderRadius: 10,
-    padding: 5,
-  },
-  completedCard: {
-    backgroundColor: "#D4E6F1",
-  },
-  taskItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  taskText: {
-    fontSize: 16,
-    marginLeft: 10,
-    flex: 1,
-    color: "#333",
-  },
-  completedTask: {
-    textDecorationLine: "line-through",
-    color: "#666",
-  },
+  card: { marginVertical: 5, borderRadius: 8, elevation: 2 },
+  completedCard: { backgroundColor: '#e0f7fa' },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  textContainer: { flex: 1, marginLeft: 8 },
+  title: { fontSize: 16, fontWeight: 'bold' },
+  subtitle: { fontSize: 12, color: '#666', marginTop: 2 },
+  completedText: { textDecorationLine: 'line-through', color: '#999' }
 });
-
-export default TaskItem;

@@ -8,7 +8,6 @@ import { NavigationRef } from "./NavigationRef";
 import HomeViews from "../MVC/Views/HomeViews";
 import TasksViews from "../MVC/Views/TasksViews";
 import CalendarViews from "../MVC/Views/CalendarViews";
-//import CalendarViews from "../Views/CalendarViews";
 import NotesViews from "../MVC/Views/NotesViews";
 import LoginViews from "../MVC/Views/LoginViews";
 import RegisterViews from "../MVC/Views/RegisterViews";

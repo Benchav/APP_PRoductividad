@@ -1,4 +1,3 @@
-// config/firebaseConfig.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
@@ -8,7 +7,7 @@ const firebaseConfig = {
   projectId: "taskoapp-a649e",
   storageBucket: "taskoapp-a649e.appspot.com",
   messagingSenderId: "395148546027",
-  appId: "1:395148546027:web:xxxxxx" // pon aquí el real
+  appId: "1:395148546027:web:xxxxxx" 
 };
 
 const app = initializeApp(firebaseConfig);
