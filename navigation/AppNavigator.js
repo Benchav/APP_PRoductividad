@@ -7,7 +7,7 @@ import { NavigationRef } from "./NavigationRef";
 
 import HomeViews from "../MVC/Views/HomeViews";
 import TasksViews from "../MVC/Views/TasksViews";
-import CalendarViews from "../MVC/Views/CalendarViews";
+//import CalendarViews from "../MVC/Views/CalendarViews";
 import NotesViews from "../MVC/Views/NotesViews";
 import LoginViews from "../MVC/Views/LoginViews";
 import RegisterViews from "../MVC/Views/RegisterViews";
@@ -32,9 +32,6 @@ const BottomTabNavigator = () => {
             case "Tasks":
               iconName = "checkmark-done";
               break;
-            case "Calendar":
-              iconName = "calendar";
-              break;
             case "Notes":
               iconName = "document-text";
               break;
@@ -53,7 +50,6 @@ const BottomTabNavigator = () => {
     >
       <Tab.Screen name="Home" component={HomeViews} options={{ title: "Inicio" }} />
       <Tab.Screen name="Tasks" component={TasksViews} options={{ title: "Tareas" }} />
-      <Tab.Screen name="Calendar" component={CalendarViews} options={{ title: "Calendario" }} />
       <Tab.Screen name="Notes" component={NotesViews} options={{ title: "Notas" }} />
       <Tab.Screen name="Focus" component={FocusModeViews} options={{ title: "Enfoque" }} />
     </Tab.Navigator>
