@@ -22,7 +22,7 @@ const HomeViews = () => {
           <Card.Content>
             <Text style={styles.title}>Tu app de productividad</Text>
             <Text style={styles.subtitle}>
-              Administra tus tareas, calendario y hábitos de manera eficiente.
+              Administra tus tareas y hábitos de manera eficiente.
             </Text>
           </Card.Content>
         </Card>
@@ -40,10 +40,7 @@ const HomeViews = () => {
           <Button mode="contained" onPress={homeController.goToTasks} style={styles.button}>
             Ver Tareas
           </Button>
-          <Button mode="contained" onPress={homeController.goToCalendar} style={[styles.button, styles.focusButton]}>
-            Ver Calendario
-          </Button>
-          <Button mode="contained" onPress={homeController.logout} style={styles.button}>
+          <Button mode="contained" onPress={homeController.logout} style={[styles.button, styles.focusButton]}>
             Salir
           </Button>
         </View>

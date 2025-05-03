@@ -1,3 +1,4 @@
+// navigation/AppNavigator.js
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -7,24 +8,21 @@ import { NavigationRef } from "./NavigationRef";
 
 import HomeViews from "../MVC/Views/HomeViews";
 import TasksViews from "../MVC/Views/TasksViews";
-//import CalendarViews from "../MVC/Views/CalendarViews";
 import NotesViews from "../MVC/Views/NotesViews";
+import FocusModeViews from "../MVC/Views/FocusModeViews";
 import LoginViews from "../MVC/Views/LoginViews";
 import RegisterViews from "../MVC/Views/RegisterViews";
-import FocusModeViews from "../MVC/Views/FocusModeViews";
 
-
-// Navegadores
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const BottomTabNavigator = () => {
+function BottomTabNavigator() {
   return (
     <Tab.Navigator
+      initialRouteName="Home"
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size }) => {
           let iconName;
-
           switch (route.name) {
             case "Home":
               iconName = "home";
@@ -39,7 +37,6 @@ const BottomTabNavigator = () => {
               iconName = "timer";
               break;
           }
-
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: "#4A90E2",
@@ -54,19 +51,29 @@ const BottomTabNavigator = () => {
       <Tab.Screen name="Focus" component={FocusModeViews} options={{ title: "Enfoque" }} />
     </Tab.Navigator>
   );
-};
+}
 
-// Componente principal de navegación
-const AppNavigator = () => {
+export default function AppNavigator() {
   return (
     <NavigationContainer ref={NavigationRef}>
-      <Stack.Navigator>
-        <Stack.Screen name="Login" component={LoginViews} options={{ headerShown: false }} />
-        <Stack.Screen name="Register" component={RegisterViews} options={{ headerShown: false }} />
-        <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen
+          name="Login"
+          component={LoginViews}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Register"
+          component={RegisterViews}
+          options={{ headerShown: false }}
+        />
+        {/* Antes era name="Home", ahora lo llamamos "Main" */}
+        <Stack.Screen
+          name="Main"
+          component={BottomTabNavigator}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
-};
-
-export default AppNavigator;
+}

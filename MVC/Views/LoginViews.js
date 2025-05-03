@@ -1,49 +1,114 @@
+// MVC/Views/LoginViews.js
 import React, { useState } from "react";
-import { View, StyleSheet, Image, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+} from "react-native";
 import { Button, Text, ActivityIndicator } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
+import { z } from "zod";
 import authController from "../Controllers/authController";
 import InputField from "../../Components/InputField";
+
+// Esquema de validación con Zod
+const loginSchema = z.object({
+  email: z.string().min(5, "El correo debe tener al menos 5 caracteres"),
+  password: z.string().min(4, "La contraseña debe tener al menos 4 caracteres"),
+});
 
 const LoginViews = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [validationErrors, setValidationErrors] = useState([]);
 
   const handleLogin = async () => {
     setIsLoading(true);
     setErrorMessage("");
+    setValidationErrors([]);
 
-    const response = await authController.handleLogin(email, password, navigation);
+    const result = loginSchema.safeParse({ email: email.trim(), password });
 
-    setIsLoading(false);
+    if (!result.success) {
+      // Extraemos los mensajes de validación
+      const issues = result.error.issues.map((err) => err.msg);
+      setValidationErrors(issues);
+      setIsLoading(false);
+      return;
+    }
 
-    if (!response.success) {
-      setErrorMessage(response.message); 
+    try {
+      const response = await authController.handleLogin(
+        email.trim(),
+        password,
+        navigation
+      );
+
+      if (!response.success) {
+        setErrorMessage(response.message || "Error desconocido");
+      }
+    } catch (err) {
+      setErrorMessage("Error de conexión. Intenta de nuevo.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
       <LinearGradient colors={["#87CEEB", "#5DADE2"]} style={styles.background}>
         <View style={styles.content}>
           <Image
-            source={{ uri: "https://th.bing.com/th/id/R.8e20650d2688f56c3415a6635e19946d?rik=1nDNqHffFfpDpg&pid=ImgRaw&r=0" }}
+            source={{
+              uri:
+                "https://th.bing.com/th/id/R.8e20650d2688f56c3415a6635e19946d?rik=1nDNqHffFfpDpg&pid=ImgRaw&r=0",
+            }}
             style={styles.logo}
           />
 
           <Text style={styles.title}>Bienvenido a Tasko</Text>
-          <Text style={styles.subtitle}>Organiza tus tareas eficientemente</Text>
+          <Text style={styles.subtitle}>
+            Organiza tus tareas eficientemente
+          </Text>
 
           <View style={styles.formContainer}>
-            <InputField label="Correo electrónico" value={email} onChangeText={setEmail} icon="email" />
-            <InputField label="Contraseña" value={password} onChangeText={setPassword} icon="lock" secureTextEntry={!showPassword} />
+            <InputField
+              label="Correo electrónico"
+              value={email}
+              onChangeText={setEmail}
+              icon="email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <InputField
+              label="Contraseña"
+              value={password}
+              onChangeText={setPassword}
+              icon="lock"
+              secureTextEntry
+            />
 
-            {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+            {/* Errores de validación */}
+            {validationErrors.map((msg, idx) => (
+              <Text key={idx} style={styles.errorText}>
+                {msg}
+              </Text>
+            ))}
+
+            {/* Error general */}
+            {errorMessage ? (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            ) : null}
 
             <Button
               mode="contained"
@@ -53,16 +118,25 @@ const LoginViews = () => {
               contentStyle={styles.buttonContent}
               disabled={isLoading}
             >
-              {isLoading ? <ActivityIndicator size="small" color="#fff" /> : "Iniciar Sesión"}
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                "Iniciar Sesión"
+              )}
             </Button>
 
-            <TouchableOpacity onPress={() => console.log("Recuperar contraseña")} style={styles.forgotPassword}>
+            <TouchableOpacity
+              onPress={() => console.log("Recuperar contraseña")}
+              style={styles.forgotPassword}
+            >
               <Text style={styles.linkText}>¿Olvidaste tu contraseña?</Text>
             </TouchableOpacity>
 
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>¿No tienes cuenta? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("Register")}
+              >
                 <Text style={styles.signupLink}>Regístrate</Text>
               </TouchableOpacity>
             </View>
@@ -156,7 +230,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: "red",
     textAlign: "center",
-    marginTop: 10,
+    marginTop: 8,
   },
 });
 
