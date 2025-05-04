@@ -24,6 +24,15 @@ import TaskForm from '../../Components/TaskForm';
 
 const BACKGROUND_URL = 'https://i.pinimg.com/736x/1a/fd/32/1afd327ffc36ac66429d3ac175fe5ae4.jpg'; 
 
+// Función auxiliar para obtener la fecha actual en dd-mm-YYYY
+const getTodayDate = () => {
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2, '0');
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const yyyy = today.getFullYear();
+  return `${dd}-${mm}-${yyyy}`;
+};
+
 export default function TasksView() {
   const [tasks, setTasks]                 = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
@@ -82,10 +91,16 @@ export default function TasksView() {
   };
 
   const handleSubmit = async data => {
+    // Añadimos la fecha de creación automáticamente si es nueva
+    const payload = {
+      ...data,
+      fecha: editingTask ? editingTask.fecha : getTodayDate(),
+    };
+
     if (editingTask) {
-      await tasksController.updateTask(editingTask.id, data);
+      await tasksController.updateTask(editingTask.id, payload);
     } else {
-      await tasksController.createTask(data);
+      await tasksController.createTask(payload);
     }
     closeForm();
     refresh();

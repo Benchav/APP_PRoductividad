@@ -15,6 +15,12 @@ export default function TaskItem({ task, onToggle, onDelete }) {
           <Text style={[styles.title, task.completed && styles.completedText]}>
             {task.title}
           </Text>
+          {/* Fecha de creación */}
+          {task.due_date && (
+            <Text style={styles.date}>
+              Creada: {task.due_date}
+            </Text>
+          )}
           <Text style={styles.subtitle}>
             {task.priority} · {task.status}
           </Text>
@@ -35,6 +41,7 @@ const styles = StyleSheet.create({
   row:            { flexDirection: 'row', alignItems: 'center' },
   textContainer:  { flex: 1, marginLeft: 8 },
   title:          { fontSize: 16, fontWeight: 'bold' },
-  subtitle:       { fontSize: 12, color: '#666', marginTop: 2 },
+  date:           { fontSize: 12, color: '#666', marginTop: 2 },
+  subtitle:       { fontSize: 12, color: '#666', marginTop: 4 },
   completedText:  { textDecorationLine: 'line-through', color: '#999' },
 });

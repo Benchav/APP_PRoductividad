@@ -1,4 +1,4 @@
-// components/TaskForm.js
+/// components/TaskForm.js
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Portal, Modal, TextInput, Button, Menu, Text } from 'react-native-paper';
@@ -6,40 +6,49 @@ import { Portal, Modal, TextInput, Button, Menu, Text } from 'react-native-paper
 const priorities = ['Baja', 'Media', 'Alta'];
 const statuses   = ['Pendiente', 'En progreso', 'Completada'];
 
+// Utilidad para obtener fecha actual en formato dd-mm-YYYY
+const getTodayFormatted = () => {
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  return `${dd}-${mm}-${yyyy}`;
+};
+
 export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }) {
-  const [title, setTitle]           = useState('');
+  const [title, setTitle]             = useState('');
   const [description, setDescription] = useState('');
-  const [priority, setPriority]     = useState('Media');
-  const [status, setStatus]         = useState('Pendiente');
-  const [dueDate, setDueDate]       = useState('');
-  const [tags, setTags]             = useState('');
+  const [priority, setPriority]       = useState('Media');
+  const [status, setStatus]           = useState('Pendiente');
+  const [tags, setTags]               = useState('');
   const [menuVisible, setMenuVisible] = useState({ priority:false, status:false });
 
-  // Si vienen valores iniciales (editar), precargarlos
   useEffect(() => {
     if (initialValues) {
       setTitle(initialValues.title);
       setDescription(initialValues.description);
       setPriority(initialValues.priority);
       setStatus(initialValues.status);
-      setDueDate(initialValues.due_date);
       setTags(initialValues.tags.join(','));
     }
   }, [initialValues]);
 
   const reset = () => {
-    setTitle(''); setDescription(''); setPriority('Media');
-    setStatus('Pendiente'); setDueDate(''); setTags('');
+    setTitle('');
+    setDescription('');
+    setPriority('Media');
+    setStatus('Pendiente');
+    setTags('');
   };
 
   const handleSave = () => {
     const payload = {
       title,
       description,
-      dueDate,
+      dueDate: initialValues?.due_date || getTodayFormatted(), // automática si es nueva
       priority,
       status,
-      tags: tags.split(',').map(t=>t.trim()).filter(Boolean),
+      tags: tags.split(',').map(t => t.trim()).filter(Boolean),
     };
     onSubmit(payload);
     reset();
@@ -124,15 +133,7 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
         </View>
 
         <TextInput
-          label="Fecha (dd-mm-YYYY)"
-          value={dueDate}
-          onChangeText={setDueDate}
-          style={styles.input}
-          mode="outlined"
-        />
-
-        <TextInput
-          label="Etiquetas (comma-separated)"
+          label="Etiquetas (separadas por coma)"
           value={tags}
           onChangeText={setTags}
           style={styles.input}
