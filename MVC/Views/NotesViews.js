@@ -19,7 +19,7 @@ import {
 } from 'react-native-paper';
 import notesController from '../Controllers/notesController';
 
-const backgroundImage = { uri: 'https://images.unsplash.com/photo-1508780709619-79562169bc64?auto=format&fit=crop&w=1080&q=80' };
+const backgroundImage = { uri: 'https://www.master-mbaonline.com/wp-content/uploads/2020/10/tecnicas-para-mejorar-la-productividad-de-las-personas-en-el-trabajo.png' };
 
 
 export default function NotesViews() {

@@ -22,9 +22,8 @@ import tasksController from '../Controllers/taskController';
 import TaskItem from '../../Components/TaskItem';
 import TaskForm from '../../Components/TaskForm';
 
-const BACKGROUND_URL = 'https://i.pinimg.com/736x/1a/fd/32/1afd327ffc36ac66429d3ac175fe5ae4.jpg'; 
+const BACKGROUND_URL = 'https://www.todofondos.net/wp-content/uploads/1080x1920-Top-15-fondo-de-pantalla-minimalista-para-iPhone-y-iPad-576x1024.jpg';
 
-// Función auxiliar para obtener la fecha actual en dd-mm-YYYY
 const getTodayDate = () => {
   const today = new Date();
   const dd = String(today.getDate()).padStart(2, '0');
@@ -34,12 +33,12 @@ const getTodayDate = () => {
 };
 
 export default function TasksView() {
-  const [tasks, setTasks]                 = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
-  const [formVisible, setFormVisible]     = useState(false);
-  const [editingTask, setEditingTask]     = useState(null);
-  const [search, setSearch]               = useState('');
-  const [filter, setFilter]               = useState('Todas');
+  const [formVisible, setFormVisible] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('Todas');
 
   useEffect(() => {
     refresh();
@@ -65,9 +64,9 @@ export default function TasksView() {
   };
 
   const handleDeleteTask = id => {
-    Alert.alert('Eliminar tarea','¿Seguro?',[{
+    Alert.alert('Eliminar tarea', '¿Seguro?', [{
       text: 'Cancelar', style: 'cancel'
-    },{
+    }, {
       text: 'Eliminar', style: 'destructive', onPress: async () => {
         await tasksController.deleteTask(id);
         refresh();
@@ -91,7 +90,6 @@ export default function TasksView() {
   };
 
   const handleSubmit = async data => {
-    // Añadimos la fecha de creación automáticamente si es nueva
     const payload = {
       ...data,
       fecha: editingTask ? editingTask.fecha : getTodayDate(),
@@ -106,12 +104,11 @@ export default function TasksView() {
     refresh();
   };
 
-  // Estadísticas
-  const total      = tasks.length;
-  const completed  = tasks.filter(t => t.completed).length;
-  const inProg     = tasks.filter(t => t.status === 'En progreso').length;
-  const pending    = tasks.filter(t => t.status === 'Pendiente').length;
-  const ratio      = total ? completed / total : 0;
+  const total = tasks.length;
+  const completed = tasks.filter(t => t.completed).length;
+  const inProg = tasks.filter(t => t.status === 'En progreso').length;
+  const pending = tasks.filter(t => t.status === 'Pendiente').length;
+  const ratio = total ? completed / total : 0;
 
   return (
     <ImageBackground
@@ -121,7 +118,6 @@ export default function TasksView() {
     >
       <View style={styles.overlay}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* HEADER */}
           <View style={styles.headerContainer}>
             <Text style={styles.title}>Administrador de Tareas</Text>
 
@@ -143,7 +139,7 @@ export default function TasksView() {
                 <Text style={styles.statValue}>{Math.round(ratio * 100)}%</Text>
               </Card.Content>
               <Card.Content>
-                <ProgressBar progress={ratio} style={styles.progress}/>
+                <ProgressBar progress={ratio} style={styles.progress} />
                 <Text style={styles.progressText}>
                   {completed} de {total}
                 </Text>
@@ -151,7 +147,6 @@ export default function TasksView() {
             </Card>
           </View>
 
-          {/* BUSCADOR */}
           <View style={styles.searchContainer}>
             <TextInput
               placeholder="Buscar tareas..."
@@ -163,7 +158,7 @@ export default function TasksView() {
               style={styles.searchInput}
             />
             <View style={styles.filterRow}>
-              {['Todas','Pendiente','En progreso','Completada'].map(s => (
+              {['Todas', 'Pendiente', 'En progreso', 'Completada'].map(s => (
                 <TouchableOpacity
                   key={s}
                   style={[
@@ -175,7 +170,7 @@ export default function TasksView() {
                     applyFilters(tasks, search, s);
                   }}
                 >
-                  <Text style={ filter===s
+                  <Text style={filter === s
                     ? styles.filterButtonTextActive
                     : styles.filterButtonText
                   }>
@@ -186,7 +181,6 @@ export default function TasksView() {
             </View>
           </View>
 
-          {/* LISTA */}
           {filteredTasks.map(task => (
             <TouchableOpacity
               key={task.id}
@@ -207,7 +201,6 @@ export default function TasksView() {
           )}
         </ScrollView>
 
-        {/* FORMULARIO */}
         <TaskForm
           visible={formVisible}
           onDismiss={closeForm}
@@ -215,7 +208,6 @@ export default function TasksView() {
           initialValues={editingTask}
         />
 
-        {/* FAB */}
         <FAB
           icon="plus"
           style={styles.fab}
@@ -229,156 +221,162 @@ export default function TasksView() {
 const styles = StyleSheet.create({
   imageBackground: {
     flex: 1,
+    resizeMode: 'cover',
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(248, 250, 252, 0.85)',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
   },
   scrollContent: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingBottom: 100,
-    paddingTop: 16,
+    paddingTop: 20,
   },
   headerContainer: {
-    marginBottom: 32,
+    marginBottom: 25,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '800',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 25,
     color: '#1E293B',
-    letterSpacing: -0.5,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginHorizontal: -16,
+    paddingVertical: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 20,
+    marginHorizontal: -10,
+    elevation: 6,
+    shadowColor: '#1E293B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    letterSpacing: 0.5,
+  },
+  statCard: {
+    marginVertical: 10,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    overflow: 'hidden',
     elevation: 3,
     shadowColor: '#1E293B',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-  },
-  statCard: {
-    marginVertical: 8,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    shadowColor: '#1E293B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    overflow: 'hidden',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
   },
   statRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 20,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: 'rgba(241, 245, 249, 0.6)',
   },
   statLabel: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
     color: '#475569',
-    letterSpacing: 0.2,
+    letterSpacing: 0.3,
   },
   statValue: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#3B82F6',
-    letterSpacing: -0.3,
   },
   subStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 16,
-    paddingVertical: 12,
+    padding: 18,
+    paddingVertical: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
   },
   subStatText: {
     fontSize: 14,
     color: '#64748B',
     fontWeight: '500',
+    letterSpacing: 0.2,
   },
   progress: {
-    height: 12,
-    borderRadius: 8,
+    height: 14,
+    borderRadius: 10,
     backgroundColor: '#E2E8F0',
-    marginVertical: 8,
+    marginVertical: 10,
   },
   progressText: {
-    fontSize: 13,
+    fontSize: 14,
     textAlign: 'center',
     color: '#64748B',
-    fontWeight: '500',
-    marginTop: 4,
+    fontWeight: '600',
+    marginTop: 6,
   },
   searchContainer: {
-    marginTop: 8,
-    marginBottom: 16,
+    marginTop: 15,
+    marginBottom: 20,
   },
   searchInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    borderWidth: 1,
+    borderRadius: 14,
+    marginBottom: 18,
+    borderWidth: 1.5,
     borderColor: '#E2E8F0',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '500',
     color: '#1E293B',
+    elevation: 2,
+    shadowColor: '#1E293B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
   },
   filterRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 8,
-    gap: 8,
+    marginBottom: 10,
+    gap: 10,
+    justifyContent: 'center',
   },
   filterButton: {
     paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    borderWidth: 1.5,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+    borderWidth: 1.8,
     borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
   filterButtonActive: {
     backgroundColor: '#3B82F6',
-    borderColor: '#3B82F6',
+    borderColor: '#2563EB',
   },
   filterButtonText: {
     color: '#64748B',
     fontWeight: '600',
     fontSize: 14,
+    letterSpacing: 0.3,
   },
   filterButtonTextActive: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   emptyText: {
     textAlign: 'center',
-    marginTop: 32,
+    marginTop: 40,
     color: '#94A3B8',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '500',
-    letterSpacing: 0.2,
+    letterSpacing: 0.4,
   },
   fab: {
     position: 'absolute',
-    right: 28,
-    bottom: 32,
+    right: 25,
+    bottom: 35,
     backgroundColor: '#3B82F6',
-    borderRadius: 28,
-    width: 60,
-    height: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 6,
-    shadowColor: '#3B82F6',
+    borderRadius: 30,
+    width: 64,
+    height: 64,
+    elevation: 8,
+    shadowColor: '#1E293B',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
   },
 });
