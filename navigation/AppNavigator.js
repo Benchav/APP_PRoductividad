@@ -12,6 +12,7 @@ import NotesViews from "../MVC/Views/NotesViews";
 import FocusModeViews from "../MVC/Views/FocusModeViews";
 import LoginViews from "../MVC/Views/LoginViews";
 import RegisterViews from "../MVC/Views/RegisterViews";
+import DeletedTasksStoreViews from "../MVC/Views/DeletedTasksStoreViews";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -33,6 +34,9 @@ function BottomTabNavigator() {
             case "Notes":
               iconName = "document-text";
               break;
+              case "Historial":
+                iconName = "trash-bin-outline";
+                break;
             case "Focus":
               iconName = "timer";
               break;
@@ -48,6 +52,7 @@ function BottomTabNavigator() {
       <Tab.Screen name="Home" component={HomeViews} options={{ title: "Inicio" }} />
       <Tab.Screen name="Tasks" component={TasksViews} options={{ title: "Tareas" }} />
       <Tab.Screen name="Notes" component={NotesViews} options={{ title: "Notas" }} />
+      <Tab.Screen name="Historial" component={DeletedTasksStoreViews} options={{ title: "Historial" }} />
       <Tab.Screen name="Focus" component={FocusModeViews} options={{ title: "Enfoque" }} />
     </Tab.Navigator>
   );
@@ -67,11 +72,17 @@ export default function AppNavigator() {
           component={RegisterViews}
           options={{ headerShown: false }}
         />
-        {/* Antes era name="Home", ahora lo llamamos "Main" */}
+        {/* Pantalla principal con tabs */}
         <Stack.Screen
           name="Main"
           component={BottomTabNavigator}
           options={{ headerShown: false }}
+        />
+        {/* Nueva pantalla de historial */}
+        <Stack.Screen
+          name="DeletedTasks"
+          component={DeletedTasksStoreViews}
+          options={{ title: "Historial Eliminadas" }}
         />
       </Stack.Navigator>
     </NavigationContainer>

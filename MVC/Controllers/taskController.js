@@ -1,5 +1,6 @@
 // Controllers/taskController.js
 import tasksModel from '../Models/taskModel';
+import { addDeletedTask } from '../../Components/deletedTasksStore';
 
 const taskController = {
   /**
@@ -62,7 +63,7 @@ const taskController = {
       tags:        task.tags,
     };
 
-    // 4. Llamamos a updateTask con el payload y completed
+    // 4. Llamamos a updateTask con el payload y el nuevo estado completed
     return await tasksModel.updateTask(taskId, {
       ...payload,
       completed: newCompleted,
@@ -71,10 +72,16 @@ const taskController = {
 
   /**
    * Elimina una tarea por ID.
+   * Antes guarda un registro en el historial de eliminadas.
    * @param {string} taskId
    * @returns {Promise<Object>}
    */
   deleteTask: async (taskId) => {
+    // 1) Obtenemos la tarea completa del backend
+    const task = await tasksModel.getTaskById(taskId);
+    // 2) Añadimos esa tarea al historial local
+    await addDeletedTask(task);
+    // 3) Eliminamos la tarea en el backend
     return await tasksModel.deleteTask(taskId);
   },
 };
