@@ -1,14 +1,18 @@
+// Views/NotesViews.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
   ScrollView,
   Alert,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
   ImageBackground,
 } from 'react-native';
 import {
   Text,
-  Card,
+  Surface,
   FAB,
   Portal,
   Modal,
@@ -16,186 +20,240 @@ import {
   Button,
   Chip,
   IconButton,
+  useTheme,
+  Divider,
+  ProgressBar,
 } from 'react-native-paper';
 import notesController from '../Controllers/notesController';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const backgroundImage = { uri: 'https://www.master-mbaonline.com/wp-content/uploads/2020/10/tecnicas-para-mejorar-la-productividad-de-las-personas-en-el-trabajo.png' };
-
+const bgImage = { uri: 'https://www.master-mbaonline.com/wp-content/uploads/2020/10/tecnicas-para-mejorar-la-productividad-de-las-personas-en-el-trabajo.png' };
 
 export default function NotesViews() {
+  const { colors } = useTheme();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
-  const [editingNote, setEditingNote] = useState(null);
-
+  const [editing, setEditing] = useState(null);
   const [title, setTitle] = useState('');
   const [texto, setTexto] = useState('');
   const [tags, setTags] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchNotes();
-  }, []);
+  useEffect(() => { fetchNotes(); }, []);
 
   const fetchNotes = async () => {
     setLoading(true);
     try {
-      const all = await notesController.getAllNotes();
-      setNotes(all);
-    } catch (e) {
-      console.error(e);
+      setNotes(await notesController.getAllNotes());
+    } catch {
       Alert.alert('Error', 'No se pudieron cargar las notas');
     } finally {
       setLoading(false);
     }
   };
 
-  const openForm = (note = null) => {
-    if (note) {
-      setEditingNote(note);
-      setTitle(note.title || '');
-      setTexto(note.texto || '');
-      setTags(Array.isArray(note.tags) ? note.tags.join(',') : '');
+  const openForm = n => {
+    if (n) {
+      setEditing(n);
+      setTitle(n.title || '');
+      setTexto(n.texto || '');
+      setTags(Array.isArray(n.tags) ? n.tags.join(', ') : '');
     }
     setFormVisible(true);
   };
-
   const closeForm = () => {
+    setEditing(null);
+    setTitle(''); setTexto(''); setTags(''); setError('');
     setFormVisible(false);
-    setEditingNote(null);
-    setTitle('');
-    setTexto('');
-    setTags('');
-    setError('');
   };
-
-  const handleSave = async () => {
+  const save = async () => {
     if (!title.trim() || !texto.trim()) {
-      setError('Título y texto son obligatorios');
+      setError('Título y contenido son requeridos');
       return;
     }
-
     const payload = {
       title: title.trim(),
       texto: texto.trim(),
-      tags: tags
-        .split(',')
-        .map(t => t.trim())
-        .filter(Boolean),
+      tags: tags.split(',').map(t => t.trim()).filter(Boolean),
     };
-
     try {
-      if (editingNote) {
-        await notesController.updateNote(editingNote.id, payload);
-      } else {
-        await notesController.createNote(payload);
-      }
-      closeForm();
-      fetchNotes();
-    } catch (e) {
-      console.error(e);
+      if (editing) await notesController.updateNote(editing.id, payload);
+      else await notesController.createNote(payload);
+      closeForm(); fetchNotes();
+    } catch {
       setError('Error al guardar la nota');
     }
   };
-
-  const handleDelete = (id) => {
-    Alert.alert(
-      'Eliminar nota',
-      '¿Seguro que quieres eliminar esta nota?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            await notesController.deleteNote(id);
-            fetchNotes();
-          },
-        },
-      ]
-    );
-  };
+  const remove = id => Alert.alert('Eliminar nota', '¿Confirmas que deseas eliminar esta nota permanentemente?', [
+    { text:'Cancelar', style:'cancel' },
+    {
+      text:'Eliminar',
+      style:'destructive',
+      onPress: async() => { await notesController.deleteNote(id); fetchNotes(); }
+    }
+  ]);
 
   return (
-    <ImageBackground
-      source={backgroundImage}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay}>
-        <ScrollView contentContainerStyle={styles.scroll}>
-          <Text style={styles.pageTitle}>Notas:</Text>
-          {notes.map(note => (
-            <Card key={note.id} style={styles.card}>
-              <Card.Title
-                title={note.title || 'Sin título'}
-                right={() => (
-                  <IconButton
-                    icon="delete-outline"
-                    onPress={() => handleDelete(note.id)}
-                  />
-                )}
-              />
-              <Card.Content>
-                <Text style={styles.texto}>{note.texto || 'Sin contenido'}</Text>
-                <View style={styles.tagsRow}>
-                  {(Array.isArray(note.tags) ? note.tags : []).map(tag => (
-                    <Chip key={tag} style={styles.chip}>{tag}</Chip>
+    <ImageBackground source={bgImage} style={styles.bg} resizeMode="cover">
+      <View style={[styles.overlay, { backgroundColor: colors.background }]}>
+        <View style={styles.spacer} />
+        {/* Header */}
+        <View style={styles.header}>
+          <Text variant="titleLarge" style={[styles.headerTitle, { color: colors.onBackground }]}>
+            <MaterialCommunityIcons name="notebook" size={24} /> Mis Notas
+          </Text>
+          <Text variant="bodySmall" style={{ color: colors.outline }}>
+            {notes.length} {notes.length === 1 ? 'nota' : 'notas'}
+          </Text>
+        </View>
+        <Divider style={{ backgroundColor: colors.outline }} />
+
+        {/* Loading */}
+        {loading && <ProgressBar indeterminate color={colors.primary} />}
+
+        {/* Notes List */}
+        <ScrollView
+          contentContainerStyle={styles.list}
+          keyboardDismissMode="on-drag"
+          scrollEnabled={!formVisible}
+        >
+          {notes.map(n => (
+            <Surface
+              key={n.id}
+              style={[styles.noteCard, { backgroundColor: colors.surface }]}
+              elevation={2}
+              onTouchEnd={() => openForm(n)}
+            >
+              <View style={styles.cardHeader}>
+                <Text
+                  variant="titleMedium"
+                  style={[styles.noteTitle, { color: colors.onSurface }]}
+                  numberOfLines={1}
+                >
+                  {n.title || 'Sin título'}
+                </Text>
+                <IconButton
+                  icon="delete-outline"
+                  size={20}
+                  iconColor={colors.error}
+                  onPress={() => remove(n.id)}
+                />
+              </View>
+              <Text
+                variant="bodyMedium"
+                style={[styles.noteContent, { color: colors.onSurfaceVariant }]}
+                numberOfLines={3}
+              >
+                {n.texto || 'Sin contenido'}
+              </Text>
+              {Array.isArray(n.tags) && n.tags.length > 0 && (
+                <View style={styles.tagsContainer}>
+                  {n.tags.map(tag => (
+                    <Chip
+                      key={tag}
+                      compact
+                      style={[styles.tag, { backgroundColor: colors.surfaceVariant }]}
+                      textStyle={{ color: colors.onSurfaceVariant }}
+                    >
+                      #{tag}
+                    </Chip>
                   ))}
                 </View>
-              </Card.Content>
-              <Card.Actions>
-                <Button onPress={() => openForm(note)}>Editar</Button>
-              </Card.Actions>
-            </Card>
+              )}
+            </Surface>
           ))}
-          {notes.length === 0 && !loading && (
-            <Text style={styles.empty}>No hay notas aún</Text>
+          {!loading && notes.length === 0 && (
+            <View style={styles.emptyState}>
+              <MaterialCommunityIcons name="note-off-outline" size={40} color={colors.outline} />
+              <Text variant="bodyLarge" style={{ color: colors.outline }}>
+                No hay notas creadas
+              </Text>
+            </View>
           )}
         </ScrollView>
 
-        <FAB icon="plus" style={styles.fab} onPress={() => openForm()} />
+        {/* FAB */}
+        <FAB
+          icon="plus"
+          label="Nueva nota"
+          style={[styles.fab, { backgroundColor: colors.primary }]}
+          color={colors.onPrimary}
+          onPress={() => openForm()}
+        />
 
+        {/* Note Editor Modal */}
         <Portal>
           <Modal
             visible={formVisible}
             onDismiss={closeForm}
-            contentContainerStyle={styles.modal}
+            contentContainerStyle={[styles.modal, { backgroundColor: colors.background }]}
           >
-            <Text style={styles.formHeader}>
-              {editingNote ? 'Editar Nota' : 'Nueva Nota'}
-            </Text>
-            <TextInput
-              label="Título"
-              value={title}
-              onChangeText={setTitle}
-              style={styles.input}
-              mode="outlined"
-            />
-            <TextInput
-              label="Texto"
-              value={texto}
-              onChangeText={setTexto}
-              style={[styles.input, { height: 120 }]}
-              mode="outlined"
-              multiline
-            />
-            <TextInput
-              label="Etiquetas (coma)"
-              value={tags}
-              onChangeText={setTags}
-              style={styles.input}
-              mode="outlined"
-            />
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-            <View style={styles.actions}>
-              <Button onPress={closeForm}>
-                <Text>Cancelar</Text>
-              </Button>
-              <Button mode="contained" onPress={handleSave}>
-                <Text style={{ color: 'white' }}>Guardar</Text>
-              </Button>
-            </View>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              style={styles.modalContent}
+            >
+              <Text variant="titleMedium" style={[styles.modalTitle, { color: colors.onBackground }]}>
+                <MaterialCommunityIcons name={editing ? 'pencil' : 'plus'} size={20} />{' '}
+                {editing ? 'Editar' : 'Nueva'} Nota
+              </Text>
+
+              <TextInput
+                label="Título"
+                value={title}
+                onChangeText={setTitle}
+                mode="outlined"
+                dense
+                style={styles.input}
+                outlineColor={colors.outline}
+                activeOutlineColor={colors.primary}
+                maxLength={60}
+              />
+              <TextInput
+                label="Contenido"
+                value={texto}
+                onChangeText={setTexto}
+                mode="outlined"
+                multiline
+                numberOfLines={4}
+                style={[styles.input, styles.textArea]}
+                outlineColor={colors.outline}
+                activeOutlineColor={colors.primary}
+              />
+              <TextInput
+                label="Etiquetas (separadas por comas)"
+                value={tags}
+                onChangeText={setTags}
+                mode="outlined"
+                dense
+                style={styles.input}
+                outlineColor={colors.outline}
+                activeOutlineColor={colors.primary}
+              />
+              {error && (
+                <Text variant="bodySmall" style={[styles.error, { color: colors.error }]}>
+                  <MaterialCommunityIcons name="alert-circle" size={14} /> {error}
+                </Text>
+              )}
+
+              <View style={styles.modalActions}>
+                <Button
+                  mode="outlined"
+                  onPress={closeForm}
+                  style={{ borderColor: colors.outline }}
+                  textColor={colors.onSurface}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  mode="contained"
+                  onPress={save}
+                  style={{ backgroundColor: colors.primary }}
+                >
+                  Guardar
+                </Button>
+              </View>
+            </KeyboardAvoidingView>
           </Modal>
         </Portal>
       </View>
@@ -204,130 +262,95 @@ export default function NotesViews() {
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
+  bg: { flex: 1 },
+  overlay: { flex: 1 },
+  spacer: { height: Platform.OS === 'android' ? StatusBar.currentHeight : 20 },
+
+  header: {
+    padding: 16,
+    paddingBottom: 8,
   },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(249, 251, 253, 0.92)',
+  headerTitle: {
+    fontWeight: '600',
+    marginBottom: 4,
   },
-  pageTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    marginBottom: 24,
-    textAlign: 'center',
-    color: '#2D3748',
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#EDF2F7',
-    elevation: 2,
-    shadowColor: '#1A202C',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-  },
-  scroll: {
-    paddingHorizontal: 20,
+
+  list: {
+    padding: 16,
+    gap: 12,
     paddingBottom: 100,
-    paddingTop: 16,
   },
-  card: {
-    marginVertical: 8,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#1A202C',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-  },
-  texto: {
-    marginBottom: 12,
-    color: '#4A5568',
-    lineHeight: 24,
-    fontSize: 16,
-  },
-  tagsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
+  noteCard: {
+    borderRadius: 12,
+    padding: 16,
     gap: 8,
   },
-  chip: {
-    backgroundColor: '#EBF4FF',
-    borderRadius: 20,
-    height: 34,
-    paddingHorizontal: 14,
-    justifyContent: 'center',
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  fab: {
-    position: 'absolute',
-    right: 28,
-    bottom: 28,
-    backgroundColor: '#4C6FFF',
-    borderRadius: 30,
-    width: 60,
-    height: 60,
+  noteTitle: {
+    flex: 1,
+    fontWeight: '500',
+  },
+  noteContent: {
+    lineHeight: 22,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+  },
+  tag: {
+    borderRadius: 6,
+  },
+
+  emptyState: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 6,
-    shadowColor: '#4C6FFF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    paddingVertical: 40,
+    gap: 16,
   },
-  empty: {
-    textAlign: 'center',
-    marginTop: 80,
-    color: '#A0AEC0',
-    fontSize: 18,
-    marginHorizontal: 40,
-    lineHeight: 28,
-    fontWeight: '500',
+
+  fab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    borderRadius: 16,
   },
+
   modal: {
-    backgroundColor: 'white',
-    margin: 28,
-    padding: 24,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#1A202C',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    margin: 20,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
-  formHeader: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 28,
-    color: '#2D3748',
-    textAlign: 'center',
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EDF2F7',
+  modalContent: {
+    padding: 24,
+    gap: 16,
+  },
+  modalTitle: {
+    fontWeight: '600',
+    marginBottom: 8,
   },
   input: {
-    marginBottom: 18,
-    backgroundColor: 'white',
-    borderRadius: 10,
-    fontSize: 16,
-    borderColor: '#E2E8F0',
+    backgroundColor: 'transparent',
+  },
+  textArea: {
+    minHeight: 120,
+    textAlignVertical: 'top',
   },
   error: {
-    color: '#F56565',
-    textAlign: 'center',
-    marginBottom: 16,
-    fontWeight: '500',
-    fontSize: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  actions: {
+  modalActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    gap: 12,
     marginTop: 16,
-    gap: 16,
   },
 });

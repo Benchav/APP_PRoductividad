@@ -6,23 +6,31 @@ import {
   ScrollView,
   RefreshControl,
   Alert,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import {
   Text,
-  Card,
+  Surface,
   IconButton,
   FAB,
+  Divider,
+  useTheme,
 } from 'react-native-paper';
 import {
   getDeletedTasks,
-  removeDeletedTask,  // <-- Asegúrate de exportar esto en deletedTasksStore.js
+  removeDeletedTask,
 } from '../../Components/deletedTasksStore';
+import moment from 'moment';
+import 'moment/locale/es';
+
+moment.locale('es');
 
 export default function DeletedTasksStoreViews({ navigation }) {
+  const { colors } = useTheme();
   const [deleted, setDeleted] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Carga inicial y cada vez que la pantalla gana foco
   const loadDeleted = async () => {
     const arr = await getDeletedTasks();
     setDeleted(arr);
@@ -30,8 +38,8 @@ export default function DeletedTasksStoreViews({ navigation }) {
 
   useEffect(() => {
     loadDeleted();
-    const unsubscribe = navigation.addListener('focus', loadDeleted);
-    return unsubscribe;
+    const unsub = navigation.addListener('focus', loadDeleted);
+    return unsub;
   }, [navigation]);
 
   const onRefresh = async () => {
@@ -42,63 +50,140 @@ export default function DeletedTasksStoreViews({ navigation }) {
 
   const handleRemove = (id) => {
     Alert.alert(
-      'Borrar del historial',
-      '¿Seguro que quieres eliminar esta tarea del historial?',
+      'Eliminar permanentemente',
+      'Esta acción no se puede deshacer y se perderán todos los datos de la tarea',
       [
-        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+          textStyle: { color: colors.onSurface },
+        },
         {
           text: 'Eliminar',
           style: 'destructive',
           onPress: async () => {
             await removeDeletedTask(id);
             await loadDeleted();
-          }
-        }
-      ]
+          },
+          textStyle: { color: colors.error },
+        },
+      ],
+      { cancelable: true, userInterfaceStyle: 'light' }
     );
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Safe status bar spacer */}
+      <View style={styles.spacer} />
+
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+          />
         }
       >
-        <Text style={styles.header}>Historial de Tareas Borradas</Text>
+        <View style={styles.headerContainer}>
+          <Text variant="titleLarge" style={styles.headerTitle}>
+            Tareas Eliminadas
+          </Text>
+          <Text
+            variant="bodyMedium"
+            style={[styles.headerSubtitle, { color: colors.outline }]}
+          >
+            {deleted.length} elemento{deleted.length !== 1 ? 's' : ''} en el historial
+          </Text>
+          <Divider style={[styles.divider, { backgroundColor: colors.outline }]} />
+        </View>
 
         {deleted.length === 0 ? (
-          <Text style={styles.empty}>No hay tareas eliminadas aún</Text>
+          <View style={styles.emptyState}>
+            <IconButton
+              icon="delete-off-outline"
+              size={40}
+              color={colors.outline}
+            />
+            <Text variant="bodyLarge" style={[styles.emptyText, { color: colors.outline }]}>
+              No hay elementos eliminados
+            </Text>
+          </View>
         ) : (
-          deleted.map(task => (
-            <Card key={task.id} style={styles.card}>
-              <Card.Content style={styles.row}>
-                <View style={styles.info}>
-                  <Text style={styles.title}>{task.title}</Text>
-                  {task.due_date && (
-                    <Text style={styles.date}>Creada: {task.due_date}</Text>
-                  )}
-                  <Text style={styles.subtitle}>
-                    {task.priority} · {task.status}
+          deleted.map((task) => (
+            <Surface
+              key={task.id}
+              style={[styles.taskCard, { backgroundColor: colors.surface }]}
+              elevation={1}
+            >
+              <View style={styles.taskContent}>
+                <View style={styles.taskInfo}>
+                  <Text
+                    variant="titleSmall"
+                    style={[styles.taskTitle, { color: colors.onSurface }]}
+                    numberOfLines={1}
+                  >
+                    {task.title}
                   </Text>
+
+                  <View style={styles.metaContainer}>
+                    <View style={styles.metaItem}>
+                      <IconButton
+                        icon={task.priority === 'Alta' ? 'alert-circle' : 'circle-outline'}
+                        size={14}
+                        iconColor={task.priority === 'Alta' ? colors.error : colors.outline}
+                        style={styles.metaIcon}
+                      />
+                      <Text variant="labelSmall" style={{ color: colors.outline }}>
+                        {task.priority}
+                      </Text>
+                    </View>
+
+                    <View style={styles.metaItem}>
+                      <IconButton
+                        icon="calendar-blank"
+                        size={14}
+                        iconColor={colors.outline}
+                        style={styles.metaIcon}
+                      />
+                      <Text variant="labelSmall" style={{ color: colors.outline }}>
+                        {moment(task.due_date).format('LL')}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Surface
+                    style={[styles.statusBadge, { backgroundColor: colors.surfaceVariant }]}
+                    elevation={0}
+                  >
+                    <Text variant="labelSmall" style={{ color: colors.onSurfaceVariant }}>
+                      {task.status}
+                    </Text>
+                  </Surface>
                 </View>
+
                 <IconButton
-                  icon="trash-can-outline"
-                  size={20}
+                  icon="delete-forever-outline"
+                  size={24}
+                  iconColor={colors.error}
                   onPress={() => handleRemove(task.id)}
+                  style={styles.deleteButton}
                 />
-              </Card.Content>
-            </Card>
+              </View>
+            </Surface>
           ))
         )}
       </ScrollView>
 
       <FAB
-        small
         icon="refresh"
-        style={styles.fab}
+        label="Actualizar"
+        style={[styles.fab, { backgroundColor: colors.primaryContainer }]}
+        color={colors.onPrimaryContainer}
         onPress={onRefresh}
+        variant="primary"
       />
     </View>
   );
@@ -107,53 +192,83 @@ export default function DeletedTasksStoreViews({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FBFD',
+  },
+  spacer: {
+    height: Platform.OS === 'android' ? StatusBar.currentHeight : 20,
   },
   scroll: {
-    padding: 20,
+    padding: 16,
+    paddingBottom: 100,
+    gap: 12,
   },
-  header: {
-    fontSize: 24,
-    fontWeight: '700',
+  headerContainer: {
     marginBottom: 16,
+  },
+  headerTitle: {
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    marginBottom: 8,
+  },
+  divider: {
+    height: 1,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    gap: 16,
+  },
+  emptyText: {
     textAlign: 'center',
   },
-  empty: {
-    textAlign: 'center',
-    marginTop: 50,
-    color: '#A0AEC0',
-    fontSize: 16,
+  taskCard: {
+    borderRadius: 12,
+    padding: 12,
   },
-  card: {
-    marginBottom: 12,
-    borderRadius: 8,
-    elevation: 2,
-  },
-  row: {
+  taskContent: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  info: {
+  taskInfo: {
     flex: 1,
+    gap: 8,
   },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
+  taskTitle: {
+    fontWeight: '500',
   },
-  date: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 4,
+  metaContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    alignItems: 'center',
   },
-  subtitle: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metaIcon: {
+    margin: 0,
+    padding: 0,
+    width: 20,
+    height: 20,
+  },
+  statusBadge: {
+    alignSelf: 'flex-start',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginTop: 8,
+  },
+  deleteButton: {
+    margin: -8,
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
-    backgroundColor: '#3B82F6',
+    right: 16,
+    bottom: 16,
+    borderRadius: 16,
   },
 });

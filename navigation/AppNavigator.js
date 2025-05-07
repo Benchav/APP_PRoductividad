@@ -13,6 +13,8 @@ import FocusModeViews from "../MVC/Views/FocusModeViews";
 import LoginViews from "../MVC/Views/LoginViews";
 import RegisterViews from "../MVC/Views/RegisterViews";
 import DeletedTasksStoreViews from "../MVC/Views/DeletedTasksStoreViews";
+import TaskStatsViews from "../MVC/Views/TaskStatsViews";
+import ProfileViews from "../MVC/Views/ProfileViews";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -34,6 +36,12 @@ function BottomTabNavigator() {
             case "Notes":
               iconName = "document-text";
               break;
+              case "Perfil":
+                iconName = "person-outline";
+                break;
+              case "Progreso":
+                iconName = "stats-chart-outline";
+                break;
               case "Historial":
                 iconName = "trash-bin-outline";
                 break;
@@ -52,6 +60,8 @@ function BottomTabNavigator() {
       <Tab.Screen name="Home" component={HomeViews} options={{ title: "Inicio" }} />
       <Tab.Screen name="Tasks" component={TasksViews} options={{ title: "Tareas" }} />
       <Tab.Screen name="Notes" component={NotesViews} options={{ title: "Notas" }} />
+      <Tab.Screen name="Perfil" component={ProfileViews} options={{ title: "Perfil" }} />
+      <Tab.Screen name="Progreso" component={TaskStatsViews} options={{ title: "Progreso" }} />
       <Tab.Screen name="Historial" component={DeletedTasksStoreViews} options={{ title: "Historial" }} />
       <Tab.Screen name="Focus" component={FocusModeViews} options={{ title: "Enfoque" }} />
     </Tab.Navigator>
@@ -77,6 +87,18 @@ export default function AppNavigator() {
           name="Main"
           component={BottomTabNavigator}
           options={{ headerShown: false }}
+        />
+        {/* Nueva pantalla de perfil */}
+        <Stack.Screen
+          name="Profile"
+          component={ProfileViews}
+          options={{ title: "Perfil" }}
+        />
+          {/* Nueva pantalla progreso */}
+          <Stack.Screen
+          name="TaskStats"
+          component={TaskStatsViews}
+          options={{ title: "Progreso" }}
         />
         {/* Nueva pantalla de historial */}
         <Stack.Screen

@@ -10,9 +10,24 @@ const tasksModel = {
   getAllTasks: async () => {
     try {
       const res = await api.get('/tasks');
-      return res.data; // [{ id, title, description, due_date, completed, user_id, status, priority, tags }, …]
+      return res.data;
     } catch (err) {
       console.error('Error al obtener tareas:', err.message);
+      throw err;
+    }
+  },
+
+  /**
+   * Obtiene las tareas de un usuario.
+   * @param {string} userId
+   * @returns {Promise<Array>}
+   */
+  getTasksByUser: async (userId) => {
+    try {
+      const res = await api.get(`/tasks/user/${userId}`);
+      return res.data;
+    } catch (err) {
+      console.error(`Error al obtener tareas de usuario ${userId}:`, err.message);
       throw err;
     }
   },
@@ -34,14 +49,7 @@ const tasksModel = {
 
   /**
    * Crea una nueva tarea.
-   * @param {{
-   *   title: string,
-   *   description?: string,
-   *   dueDate: string,      // "dd-mm-YYYY"
-   *   status?: string,      // "Pendiente"|"En progreso"|"Completada"
-   *   priority?: string,    // "Baja"|"Media"|"Alta"
-   *   tags?: string[]       
-   * }} fields
+   * @param {{ title, description?, dueDate, status?, priority?, tags? }} fields
    */
   createTask: async ({
     title,
@@ -77,14 +85,7 @@ const tasksModel = {
   /**
    * Actualiza una tarea existente.
    * @param {string} taskId
-   * @param {{
-   *   title?: string,
-   *   description?: string,
-   *   dueDate?: string,
-   *   status?: string,
-   *   priority?: string,
-   *   tags?: string[]
-   * }} fields
+   * @param {{ title?, description?, dueDate?, status?, priority?, tags? }} fields
    */
   updateTask: async (taskId, {
     title,
@@ -105,7 +106,6 @@ const tasksModel = {
         ...(status      !== undefined && { status }),
         ...(priority    !== undefined && { priority }),
         ...(tags        !== undefined && { tags }),
-        // completado puede derivarse del status,
         completed: status === 'Completada',
         user_id: userId,
       };
@@ -125,7 +125,7 @@ const tasksModel = {
   deleteTask: async (taskId) => {
     try {
       const res = await api.delete(`/tasks/${taskId}`);
-      return res.data; // { status: 'deleted' }
+      return res.data;
     } catch (err) {
       console.error(`Error al eliminar tarea ${taskId}:`, err.message);
       throw err;

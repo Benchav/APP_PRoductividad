@@ -12,6 +12,15 @@ const taskController = {
   },
 
   /**
+   * Obtiene las tareas de un usuario.
+   * @param {string} userId
+   * @returns {Promise<Array>}
+   */
+  getTasksByUserId: async (userId) => {
+    return await tasksModel.getTasksByUser(userId);
+  },
+
+  /**
    * Obtiene una tarea por ID.
    * @param {string} taskId
    * @returns {Promise<Object>}
@@ -46,24 +55,19 @@ const taskController = {
    * @returns {Promise<Object>}
    */
   toggleTask: async (taskId) => {
-    // 1. Obtenemos la tarea actual
     const task = await tasksModel.getTaskById(taskId);
-
-    // 2. Calculamos nuevos valores
     const newCompleted = !task.completed;
     const newStatus    = newCompleted ? 'Completada' : 'Pendiente';
 
-    // 3. Montamos el payload completo
     const payload = {
       title:       task.title,
       description: task.description,
-      dueDate:     task.due_date,   // camelCase; tasksModel lo convertirá a due_date
+      dueDate:     task.due_date,
       status:      newStatus,
       priority:    task.priority,
       tags:        task.tags,
     };
 
-    // 4. Llamamos a updateTask con el payload y el nuevo estado completed
     return await tasksModel.updateTask(taskId, {
       ...payload,
       completed: newCompleted,
@@ -77,11 +81,8 @@ const taskController = {
    * @returns {Promise<Object>}
    */
   deleteTask: async (taskId) => {
-    // 1) Obtenemos la tarea completa del backend
     const task = await tasksModel.getTaskById(taskId);
-    // 2) Añadimos esa tarea al historial local
     await addDeletedTask(task);
-    // 3) Eliminamos la tarea en el backend
     return await tasksModel.deleteTask(taskId);
   },
 };
