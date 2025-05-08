@@ -1,10 +1,21 @@
-/// components/TaskForm.js
+// components/TaskForm.js
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Portal, Modal, TextInput, Button, Menu, Text } from 'react-native-paper';
 
 const priorities = ['Baja', 'Media', 'Alta'];
 const statuses   = ['Pendiente', 'En progreso', 'Completada'];
+
+// Colores adaptados de TasksView
+const palette = {
+  background: '#FFFFFF',         // blanco
+  primary: '#5DADE2',            // azul medio
+  primaryContainer: '#87CEEB',   // celeste claro
+  surface: '#FFFFFF',            // blanco puro
+  outline: '#7F8C8D',            // gris neutro
+  onSurface: '#000000',          // texto oscuro
+  onPrimary: '#FFFFFF',          // texto sobre primary
+};
 
 // Utilidad para obtener fecha actual en formato dd-mm-YYYY
 const getTodayFormatted = () => {
@@ -45,7 +56,7 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
     const payload = {
       title,
       description,
-      dueDate: initialValues?.due_date || getTodayFormatted(), // automática si es nueva
+      dueDate: initialValues?.due_date || getTodayFormatted(),
       priority,
       status,
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
@@ -62,7 +73,7 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
         onDismiss={() => { reset(); onDismiss(); }}
         contentContainerStyle={styles.modal}
       >
-        <Text style={styles.header}>
+        <Text style={[styles.header, { color: palette.onSurface }]}>  
           {initialValues ? 'Editar Tarea' : 'Nueva Tarea'}
         </Text>
 
@@ -72,6 +83,9 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
           onChangeText={setTitle}
           style={styles.input}
           mode="outlined"
+          outlineColor={palette.outline}
+          activeOutlineColor={palette.primary}
+          placeholderTextColor={palette.outline}
         />
         <TextInput
           label="Descripción"
@@ -80,18 +94,23 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
           style={styles.input}
           mode="outlined"
           multiline
+          outlineColor={palette.outline}
+          activeOutlineColor={palette.primary}
+          placeholderTextColor={palette.outline}
         />
 
         <View style={styles.row}>
           <Menu
             visible={menuVisible.priority}
-            onDismiss={()=>setMenuVisible(v=>({...v, priority: false}))}
+            onDismiss={() => setMenuVisible(v => ({ ...v, priority: false }))}
             anchor={
               <Button
                 mode="outlined"
-                onPress={()=>setMenuVisible(v=>({...v, priority: true}))}
+                onPress={() => setMenuVisible(v => ({ ...v, priority: true }))}
+                style={{ borderColor: palette.outline }}
+                labelStyle={{ color: palette.onSurface }}
               >
-                <Text>{priority}</Text>
+                {priority}
               </Button>
             }
           >
@@ -99,9 +118,10 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
               <Menu.Item
                 key={p}
                 title={p}
+                titleStyle={{ color: palette.onSurface }}
                 onPress={() => {
                   setPriority(p);
-                  setMenuVisible(v=>({...v, priority: false}));
+                  setMenuVisible(v => ({ ...v, priority: false }));
                 }}
               />
             ))}
@@ -109,13 +129,15 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
 
           <Menu
             visible={menuVisible.status}
-            onDismiss={()=>setMenuVisible(v=>({...v, status: false}))}
+            onDismiss={() => setMenuVisible(v => ({ ...v, status: false }))}
             anchor={
               <Button
                 mode="outlined"
-                onPress={()=>setMenuVisible(v=>({...v, status: true}))}
+                onPress={() => setMenuVisible(v => ({ ...v, status: true }))}
+                style={{ borderColor: palette.outline }}
+                labelStyle={{ color: palette.onSurface }}
               >
-                <Text>{status}</Text>
+                {status}
               </Button>
             }
           >
@@ -123,9 +145,10 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
               <Menu.Item
                 key={s}
                 title={s}
+                titleStyle={{ color: palette.onSurface }}
                 onPress={() => {
                   setStatus(s);
-                  setMenuVisible(v=>({...v, status: false}));
+                  setMenuVisible(v => ({ ...v, status: false }));
                 }}
               />
             ))}
@@ -138,14 +161,25 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
           onChangeText={setTags}
           style={styles.input}
           mode="outlined"
+          outlineColor={palette.outline}
+          activeOutlineColor={palette.primary}
+          placeholderTextColor={palette.outline}
         />
 
         <View style={styles.actions}>
-          <Button onPress={() => { reset(); onDismiss(); }}>
-            <Text>Cancelar</Text>
+          <Button
+            onPress={() => { reset(); onDismiss(); }}
+            labelStyle={{ color: palette.primary }}
+          >
+            Cancelar
           </Button>
-          <Button mode="contained" onPress={handleSave}>
-            <Text style={{ color: 'white' }}>Guardar</Text>
+          <Button
+            mode="contained"
+            onPress={handleSave}
+            style={{ backgroundColor: palette.primary }}
+            labelStyle={{ color: palette.onPrimary }}
+          >
+            Guardar
           </Button>
         </View>
       </Modal>
@@ -154,9 +188,10 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
 }
 
 const styles = StyleSheet.create({
-  modal:   { backgroundColor:'white', margin:20, padding:20, borderRadius:8 },
+  modal:   { backgroundColor: palette.surface, margin:20, padding:20, borderRadius:8 },
   header:  { fontSize:20, fontWeight:'bold', marginBottom:15, textAlign:'center' },
-  input:   { marginBottom:15 },
+  input:   { marginBottom:15, backgroundColor: palette.surface },
   row:     { flexDirection:'row', justifyContent:'space-between', marginBottom:15 },
   actions: { flexDirection:'row', justifyContent:'flex-end', marginTop:10 }
 });
+
