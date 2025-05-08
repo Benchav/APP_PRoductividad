@@ -59,8 +59,6 @@ export default function TaskStatsViews({ navigation }) {
     const pend = Array(4).fill(0);
     const comp = Array(4).fill(0);
 
-    const now = moment();
-
     tasks.forEach(t => {
       counts[t.status]++;
       const date = moment(t.due_date, 'DD-MM-YYYY');
@@ -72,9 +70,9 @@ export default function TaskStatsViews({ navigation }) {
         }
       });
 
-      const rangeStart = segments[3].start;
-      const rangeEnd = segments[3].end;
-      if (date.isBetween(rangeStart, rangeEnd, null, '[]')) {
+      // Solo contar prioridades en el último segmento visible
+      const lastSegment = segments[3];
+      if (date.isBetween(lastSegment.start, lastSegment.end, null, '[]')) {
         prioCounts[t.priority]++;
       }
     });
@@ -262,7 +260,7 @@ const styles = StyleSheet.create({
   barChartCentered: {
     marginVertical: 8,
     borderRadius: 12,
-    alignSelf: 'center', // <-- centra horizontalmente
+    alignSelf: 'center',
   },
   legendContainer: { marginTop: 8 },
   legendItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
