@@ -30,14 +30,14 @@ import authController from "../Controllers/authController";
 
 // Compartir paleta con TasksView
 const palette = {
-  background: '#FFFFFF',        // fondo blanco
-  surface: '#FFFFFF',           // superficies blancas
-  primary: '#5DADE2',           // azul medio
-  primaryContainer: '#87CEEB',  // celeste claro
-  outline: '#7F8C8D',           // gris neutro
-  onSurface: '#000000',         // texto negro
-  error: 'red',                 // rojo puro
-  onPrimary: '#FFFFFF',         // texto sobre primary
+  background: '#FFFFFF',        
+  surface: '#FFFFFF',           
+  primary: '#5DADE2',           
+  primaryContainer: '#87CEEB',  
+  outline: '#7F8C8D',          
+  onSurface: '#000000',        
+  error: 'red',                 
+  onPrimary: '#FFFFFF',         
 };
 
 export default function ProfileView({ navigation }) {
