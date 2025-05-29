@@ -1,25 +1,22 @@
 // components/TaskForm.js
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Portal, Modal, TextInput, Button, Menu, Text } from 'react-native-paper';
+import { StyleSheet, View, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { Portal, Modal, TextInput, Button, Menu, Text, IconButton } from 'react-native-paper';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const priorities = ['Baja', 'Media', 'Alta'];
 const statuses   = ['Pendiente', 'En progreso', 'Completada'];
 
-// Colores adaptados de TasksView
 const palette = {
-  background: '#FFFFFF',         // blanco
-  primary: '#5DADE2',            // azul medio
-  primaryContainer: '#87CEEB',   // celeste claro
-  surface: '#FFFFFF',            // blanco puro
-  outline: '#7F8C8D',            // gris neutro
-  onSurface: '#000000',          // texto oscuro
-  onPrimary: '#FFFFFF',          // texto sobre primary
+  surface: '#FFFFFF',
+  primary: '#5DADE2',
+  outline: '#7F8C8D',
+  onSurface: '#000000',
+  onPrimary: '#FFFFFF',
 };
 
-// Utilidad para obtener fecha actual en formato dd-mm-YYYY
-const getTodayFormatted = () => {
-  const now = new Date();
+const getTodayFormatted = date => {
+  const now = date || new Date();
   const dd = String(now.getDate()).padStart(2, '0');
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const yyyy = now.getFullYear();
@@ -27,171 +24,289 @@ const getTodayFormatted = () => {
 };
 
 export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }) {
-  const [title, setTitle]             = useState('');
-  const [description, setDescription] = useState('');
-  const [priority, setPriority]       = useState('Media');
-  const [status, setStatus]           = useState('Pendiente');
-  const [tags, setTags]               = useState('');
-  const [menuVisible, setMenuVisible] = useState({ priority:false, status:false });
+  const iv = initialValues || {};
+  const [title, setTitle] = useState(iv.title || '');
+  const [description, setDescription] = useState(iv.description || '');
+  const [priority, setPriority] = useState(iv.priority || 'Media');
+  const [status, setStatus] = useState(iv.status || 'Pendiente');
+  const [tags, setTags] = useState((iv.tags || []).join(','));
+  const [dueDate, setDueDate] = useState(
+    iv.due_date ? new Date(iv.due_date.split('-').reverse().join('-')) : new Date()
+  );
+  const [showDate, setShowDate] = useState(false);
+  const [steps, setSteps] = useState(iv.steps?.map(s => ({ ...s })) || []);
+  const [newStep, setNewStep] = useState('');
+  const [menuVisible, setMenuVisible] = useState({ p: false, s: false });
 
   useEffect(() => {
-    if (initialValues) {
-      setTitle(initialValues.title);
-      setDescription(initialValues.description);
-      setPriority(initialValues.priority);
-      setStatus(initialValues.status);
-      setTags(initialValues.tags.join(','));
-    }
+    setTitle(iv.title || '');
+    setDescription(iv.description || '');
+    setPriority(iv.priority || 'Media');
+    setStatus(iv.status || 'Pendiente');
+    setTags((iv.tags || []).join(','));
+    setSteps(iv.steps?.map(s => ({ ...s })) || []);
+    setDueDate(
+      iv.due_date ? new Date(iv.due_date.split('-').reverse().join('-')) : new Date()
+    );
   }, [initialValues]);
 
-  const reset = () => {
-    setTitle('');
-    setDescription('');
-    setPriority('Media');
-    setStatus('Pendiente');
-    setTags('');
+  const addStep = () => {
+    if (!newStep.trim()) return;
+    setSteps(s => [...s, { description: newStep, completed: false }]);
+    setNewStep('');
+  };
+
+  const toggleStep = index =>
+    setSteps(s =>
+      s.map((st, i) => (i === index ? { ...st, completed: !st.completed } : st))
+    );
+
+  const removeStep = index => setSteps(s => s.filter((_, i) => i !== index));
+
+  const onChangeDate = (event, selectedDate) => {
+    setShowDate(false);
+    if (selectedDate) setDueDate(selectedDate);
   };
 
   const handleSave = () => {
+    const formatted = getTodayFormatted(dueDate);
     const payload = {
       title,
       description,
-      dueDate: initialValues?.due_date || getTodayFormatted(),
-      priority,
+      due_date: formatted,
+      completed: iv.completed || false,
+      user_id: iv.user_id || '',
       status,
+      priority,
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+      steps,
     };
     onSubmit(payload);
-    reset();
     onDismiss();
   };
 
   return (
     <Portal>
-      <Modal
-        visible={visible}
-        onDismiss={() => { reset(); onDismiss(); }}
-        contentContainerStyle={styles.modal}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.center}
       >
-        <Text style={[styles.header, { color: palette.onSurface }]}>  
-          {initialValues ? 'Editar Tarea' : 'Nueva Tarea'}
-        </Text>
+        <Modal
+          visible={visible}
+          onDismiss={onDismiss}
+          contentContainerStyle={styles.modal}
+        >
+          <Text style={styles.header}>{iv.id ? 'Editar Tarea' : 'Nueva Tarea'}</Text>
 
-        <TextInput
-          label="Título"
-          value={title}
-          onChangeText={setTitle}
-          style={styles.input}
-          mode="outlined"
-          outlineColor={palette.outline}
-          activeOutlineColor={palette.primary}
-          placeholderTextColor={palette.outline}
-        />
-        <TextInput
-          label="Descripción"
-          value={description}
-          onChangeText={setDescription}
-          style={styles.input}
-          mode="outlined"
-          multiline
-          outlineColor={palette.outline}
-          activeOutlineColor={palette.primary}
-          placeholderTextColor={palette.outline}
-        />
+          <TextInput
+            label="Título"
+            value={title}
+            onChangeText={setTitle}
+            mode="outlined"
+            outlineColor={palette.outline}
+            activeOutlineColor={palette.primary}
+            style={styles.input}
+          />
 
-        <View style={styles.row}>
-          <Menu
-            visible={menuVisible.priority}
-            onDismiss={() => setMenuVisible(v => ({ ...v, priority: false }))}
-            anchor={
-              <Button
-                mode="outlined"
-                onPress={() => setMenuVisible(v => ({ ...v, priority: true }))}
-                style={{ borderColor: palette.outline }}
-                labelStyle={{ color: palette.onSurface }}
-              >
-                {priority}
-              </Button>
-            }
-          >
-            {priorities.map(p => (
-              <Menu.Item
-                key={p}
-                title={p}
-                titleStyle={{ color: palette.onSurface }}
-                onPress={() => {
-                  setPriority(p);
-                  setMenuVisible(v => ({ ...v, priority: false }));
-                }}
-              />
-            ))}
-          </Menu>
+          <TextInput
+            label="Descripción"
+            value={description}
+            onChangeText={setDescription}
+            mode="outlined"
+            multiline
+            outlineColor={palette.outline}
+            activeOutlineColor={palette.primary}
+            style={styles.input}
+          />
 
-          <Menu
-            visible={menuVisible.status}
-            onDismiss={() => setMenuVisible(v => ({ ...v, status: false }))}
-            anchor={
-              <Button
-                mode="outlined"
-                onPress={() => setMenuVisible(v => ({ ...v, status: true }))}
-                style={{ borderColor: palette.outline }}
-                labelStyle={{ color: palette.onSurface }}
-              >
-                {status}
-              </Button>
-            }
-          >
-            {statuses.map(s => (
-              <Menu.Item
-                key={s}
-                title={s}
-                titleStyle={{ color: palette.onSurface }}
-                onPress={() => {
-                  setStatus(s);
-                  setMenuVisible(v => ({ ...v, status: false }));
-                }}
-              />
-            ))}
-          </Menu>
-        </View>
-
-        <TextInput
-          label="Etiquetas (separadas por coma)"
-          value={tags}
-          onChangeText={setTags}
-          style={styles.input}
-          mode="outlined"
-          outlineColor={palette.outline}
-          activeOutlineColor={palette.primary}
-          placeholderTextColor={palette.outline}
-        />
-
-        <View style={styles.actions}>
+          <Text style={styles.subHeader}>Fecha de entrega</Text>
           <Button
-            onPress={() => { reset(); onDismiss(); }}
-            labelStyle={{ color: palette.primary }}
+            mode="outlined"
+            onPress={() => setShowDate(true)}
+            style={styles.input}
           >
-            Cancelar
+            {getTodayFormatted(dueDate)}
           </Button>
-          <Button
-            mode="contained"
-            onPress={handleSave}
-            style={{ backgroundColor: palette.primary }}
-            labelStyle={{ color: palette.onPrimary }}
-          >
-            Guardar
-          </Button>
-        </View>
-      </Modal>
+          {showDate && (
+            <DateTimePicker
+              value={dueDate}
+              mode="date"
+              display="default"
+              onChange={onChangeDate}
+            />
+          )}
+
+          <View style={styles.row}>
+            <Menu
+              visible={menuVisible.p}
+              onDismiss={() => setMenuVisible({ p: false })}
+              anchor={
+                <Button
+                  mode="outlined"
+                  onPress={() => setMenuVisible({ p: true })}
+                  style={styles.input}
+                >
+                  {priority}
+                </Button>
+              }
+            >
+              {priorities.map(p => (
+                <Menu.Item
+                  key={p}
+                  title={p}
+                  onPress={() => {
+                    setPriority(p);
+                    setMenuVisible({ p: false });
+                  }}
+                />
+              ))}
+            </Menu>
+
+            <Menu
+              visible={menuVisible.s}
+              onDismiss={() => setMenuVisible({ s: false })}
+              anchor={
+                <Button
+                  mode="outlined"
+                  onPress={() => setMenuVisible({ s: true })}
+                  style={styles.input}
+                >
+                  {status}
+                </Button>
+              }
+            >
+              {statuses.map(s => (
+                <Menu.Item
+                  key={s}
+                  title={s}
+                  onPress={() => {
+                    setStatus(s);
+                    setMenuVisible({ s: false });
+                  }}
+                />
+              ))}
+            </Menu>
+          </View>
+
+          <TextInput
+            label="Etiquetas (separadas por coma)"
+            value={tags}
+            onChangeText={setTags}
+            mode="outlined"
+            outlineColor={palette.outline}
+            activeOutlineColor={palette.primary}
+            style={styles.input}
+          />
+
+          <Text style={styles.subHeader}>Pasos / Subtareas</Text>
+          <View style={styles.stepInputRow}>
+            <TextInput
+              placeholder="Nuevo paso"
+              value={newStep}
+              onChangeText={setNewStep}
+              mode="outlined"
+              outlineColor={palette.outline}
+              activeOutlineColor={palette.primary}
+              style={[styles.input, { flex: 1, marginBottom: 0 }]}  
+            />
+            <IconButton icon="plus" onPress={addStep} />
+          </View>
+          <FlatList
+            data={steps}
+            keyExtractor={(_, i) => String(i)}
+            style={{ maxHeight: 100 }}
+            renderItem={({ item, index }) => (
+              <View style={styles.stepRow}>
+                <IconButton
+                  icon={item.completed ? 'check' : 'checkbox-blank-outline'}
+                  onPress={() => toggleStep(index)}
+                />
+                <Text style={item.completed ? styles.done : styles.step}>
+                  {item.description}
+                </Text>
+                <IconButton icon="delete" onPress={() => removeStep(index)} />
+              </View>
+            )}
+          />
+
+          <View style={styles.actions}>
+            <Button onPress={onDismiss} style={{ marginRight: 8 }}>
+              Cancelar
+            </Button>
+            <Button
+              mode="contained"
+              onPress={handleSave}
+              style={{ backgroundColor: palette.primary }}
+            >
+              Guardar
+            </Button>
+          </View>
+        </Modal>
+      </KeyboardAvoidingView>
     </Portal>
   );
 }
 
 const styles = StyleSheet.create({
-  modal:   { backgroundColor: palette.surface, margin:20, padding:20, borderRadius:8 },
-  header:  { fontSize:20, fontWeight:'bold', marginBottom:15, textAlign:'center' },
-  input:   { marginBottom:15, backgroundColor: palette.surface },
-  row:     { flexDirection:'row', justifyContent:'space-between', marginBottom:15 },
-  actions: { flexDirection:'row', justifyContent:'flex-end', marginTop:10 }
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    paddingLeft: 40,           // ajustado para centrar mejor
+  },
+ modal: {
+  backgroundColor: palette.surface,
+  padding: 20,
+  borderRadius: 8,
+  alignSelf: 'flex-end', // Lo alinea a la derecha
+  marginRight: 20,       // Separación del borde derecho
+  width: '90%',          // Asegura que no ocupe toda la pantalla
+},
+
+  header: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  subHeader: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 5,
+  },
+  input: {
+    marginBottom: 15,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  stepInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  step: {
+    flex: 1,
+    fontSize: 14,
+  },
+  done: {
+    flex: 1,
+    fontSize: 14,
+    textDecorationLine: 'line-through',
+    color: '#888',
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 10,
+  },
 });
+
 

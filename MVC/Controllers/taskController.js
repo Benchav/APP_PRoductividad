@@ -1,90 +1,94 @@
 // Controllers/taskController.js
 import tasksModel from '../Models/taskModel';
 import { addDeletedTask } from '../../Components/deletedTasksStore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const taskController = {
-  /**
-   * Obtiene todas las tareas.
-   * @returns {Promise<Array>}
-   */
+  /** Obtiene todas las tareas. */
   getTasks: async () => {
     return await tasksModel.getAllTasks();
   },
 
-  /**
-   * Obtiene las tareas de un usuario.
-   * @param {string} userId
-   * @returns {Promise<Array>}
-   */
+  /** Obtiene tareas de un usuario. */
   getTasksByUserId: async (userId) => {
     return await tasksModel.getTasksByUser(userId);
   },
 
-  /**
-   * Obtiene una tarea por ID.
-   * @param {string} taskId
-   * @returns {Promise<Object>}
-   */
+  /** Obtiene una tarea por ID. */
   getTaskById: async (taskId) => {
     return await tasksModel.getTaskById(taskId);
   },
 
-  /**
-   * Crea una nueva tarea.
-   * @param {{ title, description, dueDate, status, priority, tags }} taskData
-   * @returns {Promise<Object>}
-   */
+  /** Crea una nueva tarea. */
   createTask: async (taskData) => {
-    return await tasksModel.createTask(taskData);
+    // Extrae userId del storage
+    const userId = await AsyncStorage.getItem('userId');
+    if (!userId) throw new Error('Usuario no autenticado');
+
+    // Construye payload con claves correctas
+    const payload = {
+      title:       taskData.title,
+      description: taskData.description || '',
+      due_date:    taskData.due_date || taskData.dueDate,
+      completed:   taskData.completed || false,
+      user_id:     userId,
+      status:      taskData.status,
+      priority:    taskData.priority,
+      tags:        taskData.tags || [],
+      steps:       taskData.steps || []
+    };
+
+    return await tasksModel.createTask(payload);
   },
 
-  /**
-   * Actualiza una tarea existente.
-   * @param {string} taskId
-   * @param {{ title?, description?, dueDate?, status?, priority?, tags? }} fields
-   * @returns {Promise<Object>}
-   */
+  /** Actualiza una tarea existente. */
   updateTask: async (taskId, fields) => {
-    return await tasksModel.updateTask(taskId, fields);
+    const userId = await AsyncStorage.getItem('userId');
+    if (!userId) throw new Error('Usuario no autenticado');
+
+    // Mapea campos al formato API
+    const payload = {
+      ...(fields.title       !== undefined && { title: fields.title }),
+      ...(fields.description !== undefined && { description: fields.description }),
+      ...(fields.due_date    !== undefined && { due_date: fields.due_date }),
+      ...(fields.dueDate     !== undefined && { due_date: fields.dueDate }),
+      ...(fields.status      !== undefined && { status: fields.status }),
+      ...(fields.priority    !== undefined && { priority: fields.priority }),
+      ...(fields.tags        !== undefined && { tags: fields.tags }),
+      ...(fields.steps       !== undefined && { steps: fields.steps }),
+      completed: fields.completed !== undefined ? fields.completed : undefined,
+      user_id:   userId,
+    };
+
+    return await tasksModel.updateTask(taskId, payload);
   },
 
-  /**
-   * Alterna el estado completado de una tarea enviando
-   * el objeto completo que el backend espera.
-   * @param {string} taskId
-   * @returns {Promise<Object>}
-   */
+  /** Alterna el estado "completado". */
   toggleTask: async (taskId) => {
     const task = await tasksModel.getTaskById(taskId);
     const newCompleted = !task.completed;
     const newStatus    = newCompleted ? 'Completada' : 'Pendiente';
 
-    const payload = {
+    const updateFields = {
+      status:      newStatus,
+      completed:   newCompleted,
+      due_date:    task.due_date,
       title:       task.title,
       description: task.description,
-      dueDate:     task.due_date,
-      status:      newStatus,
       priority:    task.priority,
       tags:        task.tags,
+      steps:       task.steps
     };
 
-    return await tasksModel.updateTask(taskId, {
-      ...payload,
-      completed: newCompleted,
-    });
+    return await tasksModel.updateTask(taskId, updateFields);
   },
 
-  /**
-   * Elimina una tarea por ID.
-   * Antes guarda un registro en el historial de eliminadas.
-   * @param {string} taskId
-   * @returns {Promise<Object>}
-   */
+  /** Elimina una tarea y guarda historial. */
   deleteTask: async (taskId) => {
     const task = await tasksModel.getTaskById(taskId);
     await addDeletedTask(task);
     return await tasksModel.deleteTask(taskId);
-  },
+  }
 };
 
 export default taskController;

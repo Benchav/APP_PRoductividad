@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
   },
-  title: {
+  title: {                                                                                                                                                                                                                                                                                                                                                                                                                            
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -77,11 +77,11 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 12,                                                                                                                                                             
     marginTop: 4,
   },
   completedText: {
     textDecorationLine: 'line-through',
-    color: palette.outline,
+    color: palette.outline, 
   },
 });

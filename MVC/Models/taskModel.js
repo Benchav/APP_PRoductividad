@@ -3,10 +3,7 @@ import api from '../../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const tasksModel = {
-  /**
-   * Obtiene todas las tareas (sin filtrar).
-   * @returns {Promise<Array>}
-   */
+  /** Obtiene todas las tareas. */
   getAllTasks: async () => {
     try {
       const res = await api.get('/tasks');
@@ -17,11 +14,7 @@ const tasksModel = {
     }
   },
 
-  /**
-   * Obtiene las tareas de un usuario.
-   * @param {string} userId
-   * @returns {Promise<Array>}
-   */
+  /** Obtiene tareas de un usuario. */
   getTasksByUser: async (userId) => {
     try {
       const res = await api.get(`/tasks/user/${userId}`);
@@ -32,11 +25,7 @@ const tasksModel = {
     }
   },
 
-  /**
-   * Obtiene una tarea por su ID.
-   * @param {string} taskId
-   * @returns {Promise<Object>}
-   */
+  /** Obtiene una tarea por ID. */
   getTaskById: async (taskId) => {
     try {
       const res = await api.get(`/tasks/${taskId}`);
@@ -47,17 +36,15 @@ const tasksModel = {
     }
   },
 
-  /**
-   * Crea una nueva tarea.
-   * @param {{ title, description?, dueDate, status?, priority?, tags? }} fields
-   */
+  /** Crea una nueva tarea. */
   createTask: async ({
     title,
     description = '',
-    dueDate,
+    due_date,
     status = 'Pendiente',
     priority = 'Media',
     tags = [],
+    steps = []
   }) => {
     try {
       const userId = await AsyncStorage.getItem('userId');
@@ -66,12 +53,13 @@ const tasksModel = {
       const payload = {
         title,
         description,
-        due_date: dueDate,
+        due_date,
         completed: status === 'Completada',
         user_id: userId,
         status,
         priority,
         tags,
+        steps
       };
 
       const res = await api.post('/tasks', payload);
@@ -82,18 +70,15 @@ const tasksModel = {
     }
   },
 
-  /**
-   * Actualiza una tarea existente.
-   * @param {string} taskId
-   * @param {{ title?, description?, dueDate?, status?, priority?, tags? }} fields
-   */
+  /** Actualiza una tarea existente. */
   updateTask: async (taskId, {
     title,
     description,
-    dueDate,
+    due_date,
     status,
     priority,
     tags,
+    steps
   }) => {
     try {
       const userId = await AsyncStorage.getItem('userId');
@@ -102,12 +87,13 @@ const tasksModel = {
       const payload = {
         ...(title       !== undefined && { title }),
         ...(description !== undefined && { description }),
-        ...(dueDate     !== undefined && { due_date: dueDate }),
+        ...(due_date    !== undefined && { due_date }),
         ...(status      !== undefined && { status }),
         ...(priority    !== undefined && { priority }),
         ...(tags        !== undefined && { tags }),
+        ...(steps       !== undefined && { steps }),
         completed: status === 'Completada',
-        user_id: userId,
+        user_id: userId
       };
 
       const res = await api.put(`/tasks/${taskId}`, payload);
@@ -118,10 +104,7 @@ const tasksModel = {
     }
   },
 
-  /**
-   * Elimina una tarea por su ID.
-   * @param {string} taskId
-   */
+  /** Elimina una tarea. */
   deleteTask: async (taskId) => {
     try {
       const res = await api.delete(`/tasks/${taskId}`);
@@ -130,7 +113,7 @@ const tasksModel = {
       console.error(`Error al eliminar tarea ${taskId}:`, err.message);
       throw err;
     }
-  },
+  }
 };
 
 export default tasksModel;
