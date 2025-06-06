@@ -66,6 +66,24 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
   const [menuPriorityVisible, setMenuPriorityVisible] = useState(false);
   const [menuStatusVisible, setMenuStatusVisible] = useState(false);
 
+  // Cuando se abre el modal para UNA NUEVA TAREA (no iv.id), reinicializar todos los campos
+  useEffect(() => {
+    if (visible && !iv.id) {
+      setTitle('');
+      setDescription('');
+      setJustification('');
+      setPriority('Media');
+      setStatus('Pendiente');
+      setTags('');
+      setCreationDate(new Date());
+      setDueDate(new Date());
+      setSteps([]);
+      setNewStep('');
+      setMenuPriorityVisible(false);
+      setMenuStatusVisible(false);
+    }
+  }, [visible, iv.id]);
+
   useEffect(() => {
     const loadSteps = async () => {
       if (iv.id) {
@@ -101,6 +119,7 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
   }, [steps]);
 
   useEffect(() => {
+    // Cuando initialValues cambie (por ejemplo, editar), cargar sus valores
     setTitle(iv.title || '');
     setDescription(iv.description || '');
     setJustification(iv.justification || '');
@@ -334,7 +353,6 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
           onDismiss={onDismiss}
           contentContainerStyle={styles.modal}
         >
-          {/* Un ScrollView con keyboardShouldPersistTaps evita que el teclado se oculte */}
           <ScrollView
             contentContainerStyle={{ paddingBottom: 20 }}
             keyboardShouldPersistTaps="always"
