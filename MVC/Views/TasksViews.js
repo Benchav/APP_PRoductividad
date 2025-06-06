@@ -53,20 +53,32 @@ export default function TasksView() {
     const all = await tasksController.getTasks();
     setTasks(all || []);
   };
+
   const apply = (all, txt, st) => {
     let list = all;
-    if (txt) list = list.filter(t => t.title.toLowerCase().includes(txt.toLowerCase()));
-    if (st !== 'Todas') list = list.filter(t => t.status === st);
+    if (txt) {
+      list = list.filter(t =>
+        t.title.toLowerCase().includes(txt.toLowerCase())
+      );
+    }
+    if (st !== 'Todas') {
+      list = list.filter(t => t.status === st);
+    }
     setFiltered(list);
   };
 
   const open = t => { setEditing(t); setFormVisible(true); };
   const close = () => { setEditing(null); setFormVisible(false); };
+
   const save = async data => {
-    const payload = { ...data, fecha: editing ? editing.fecha : TODAY() };
-    if (editing) await tasksController.updateTask(editing.id, payload);
-    else await tasksController.createTask(payload);
-    close(); load();
+    // En lugar de sobrescribir, enviamos exactamente lo que viene del formulario:
+    if (editing) {
+      await tasksController.updateTask(editing.id, data);
+    } else {
+      await tasksController.createTask(data);
+    }
+    close();
+    load();
   };
 
   const del = id => {
@@ -92,8 +104,14 @@ export default function TasksView() {
   const comp = tasks.filter(t => t.status === 'Completada').length;
   const pct = total ? comp / total : 0;
 
+  // Función para ordenar por estado: primero Pendiente, luego En progreso, al final Completada
+  const sortByStatus = list => {
+    const order = { 'Pendiente': 0, 'En progreso': 1, 'Completada': 2 };
+    return [...list].sort((a, b) => order[a.status] - order[b.status]);
+  };
+
   return (
-    <View style={[styles.container, { backgroundColor: palette.background }]}> 
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       {/* Espacio superior seguro */}
       <View style={styles.safeSpacer} />
 
@@ -145,11 +163,15 @@ export default function TasksView() {
             </View>
           ))}
         </View>
-        <ProgressBar progress={pct} color={palette.primary} style={[styles.bar, { backgroundColor: palette.outline }]} />
+        <ProgressBar
+          progress={pct}
+          color={palette.primary}
+          style={[styles.bar, { backgroundColor: palette.outline }]}
+        />
       </Card>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {filtered.map(t => (
+        {sortByStatus(filtered).map(t => (
           <TouchableOpacity key={t.id} onPress={() => open(t)}>
             <TaskItem task={t} onToggle={toggle} onDelete={del} />
           </TouchableOpacity>
@@ -159,7 +181,12 @@ export default function TasksView() {
         )}
       </ScrollView>
 
-      <TaskForm visible={formVisible} onDismiss={close} onSubmit={save} initialValues={editing} />
+      <TaskForm
+        visible={formVisible}
+        onDismiss={close}
+        onSubmit={save}
+        initialValues={editing}
+      />
 
       <FAB
         icon="plus"

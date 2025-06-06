@@ -21,21 +21,20 @@ const taskController = {
 
   /** Crea una nueva tarea. */
   createTask: async (taskData) => {
-    // Extrae userId del storage
     const userId = await AsyncStorage.getItem('userId');
     if (!userId) throw new Error('Usuario no autenticado');
 
-    // Construye payload con claves correctas
     const payload = {
-      title:       taskData.title,
-      description: taskData.description || '',
-      due_date:    taskData.due_date || taskData.dueDate,
-      completed:   taskData.completed || false,
-      user_id:     userId,
-      status:      taskData.status,
-      priority:    taskData.priority,
-      tags:        taskData.tags || [],
-      steps:       taskData.steps || []
+      title:         taskData.title,
+      description:   taskData.description || '',
+      due_date:      taskData.due_date || taskData.dueDate,
+      completed:     taskData.completed || false,
+      user_id:       userId,
+      status:        taskData.status,
+      priority:      taskData.priority,
+      tags:          taskData.tags || [],
+      steps:         taskData.steps || [],
+      justification: taskData.justification || ''
     };
 
     return await tasksModel.createTask(payload);
@@ -46,18 +45,18 @@ const taskController = {
     const userId = await AsyncStorage.getItem('userId');
     if (!userId) throw new Error('Usuario no autenticado');
 
-    // Mapea campos al formato API
     const payload = {
-      ...(fields.title       !== undefined && { title: fields.title }),
-      ...(fields.description !== undefined && { description: fields.description }),
-      ...(fields.due_date    !== undefined && { due_date: fields.due_date }),
-      ...(fields.dueDate     !== undefined && { due_date: fields.dueDate }),
-      ...(fields.status      !== undefined && { status: fields.status }),
-      ...(fields.priority    !== undefined && { priority: fields.priority }),
-      ...(fields.tags        !== undefined && { tags: fields.tags }),
-      ...(fields.steps       !== undefined && { steps: fields.steps }),
+      ...(fields.title         !== undefined && { title: fields.title }),
+      ...(fields.description   !== undefined && { description: fields.description }),
+      ...(fields.due_date      !== undefined && { due_date: fields.due_date }),
+      ...(fields.dueDate       !== undefined && { due_date: fields.dueDate }),
+      ...(fields.status        !== undefined && { status: fields.status }),
+      ...(fields.priority      !== undefined && { priority: fields.priority }),
+      ...(fields.tags          !== undefined && { tags: fields.tags }),
+      ...(fields.steps         !== undefined && { steps: fields.steps }),
+      ...(fields.justification !== undefined && { justification: fields.justification }),
       completed: fields.completed !== undefined ? fields.completed : undefined,
-      user_id:   userId,
+      user_id:   userId
     };
 
     return await tasksModel.updateTask(taskId, payload);
@@ -70,14 +69,15 @@ const taskController = {
     const newStatus    = newCompleted ? 'Completada' : 'Pendiente';
 
     const updateFields = {
-      status:      newStatus,
-      completed:   newCompleted,
-      due_date:    task.due_date,
-      title:       task.title,
-      description: task.description,
-      priority:    task.priority,
-      tags:        task.tags,
-      steps:       task.steps
+      status:        newStatus,
+      completed:     newCompleted,
+      due_date:      task.due_date,
+      title:         task.title,
+      description:   task.description,
+      priority:      task.priority,
+      tags:          task.tags,
+      steps:         task.steps,
+      justification: task.justification
     };
 
     return await tasksModel.updateTask(taskId, updateFields);

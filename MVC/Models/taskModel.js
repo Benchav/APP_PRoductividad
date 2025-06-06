@@ -44,7 +44,8 @@ const tasksModel = {
     status = 'Pendiente',
     priority = 'Media',
     tags = [],
-    steps = []
+    steps = [],
+    justification = ''
   }) => {
     try {
       const userId = await AsyncStorage.getItem('userId');
@@ -59,7 +60,8 @@ const tasksModel = {
         status,
         priority,
         tags,
-        steps
+        steps,
+        justification
       };
 
       const res = await api.post('/tasks', payload);
@@ -78,20 +80,22 @@ const tasksModel = {
     status,
     priority,
     tags,
-    steps
+    steps,
+    justification
   }) => {
     try {
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) throw new Error('Usuario no autenticado');
 
       const payload = {
-        ...(title       !== undefined && { title }),
-        ...(description !== undefined && { description }),
-        ...(due_date    !== undefined && { due_date }),
-        ...(status      !== undefined && { status }),
-        ...(priority    !== undefined && { priority }),
-        ...(tags        !== undefined && { tags }),
-        ...(steps       !== undefined && { steps }),
+        ...(title         !== undefined && { title }),
+        ...(description   !== undefined && { description }),
+        ...(due_date      !== undefined && { due_date }),
+        ...(status        !== undefined && { status }),
+        ...(priority      !== undefined && { priority }),
+        ...(tags          !== undefined && { tags }),
+        ...(steps         !== undefined && { steps }),
+        ...(justification !== undefined && { justification }),
         completed: status === 'Completada',
         user_id: userId
       };

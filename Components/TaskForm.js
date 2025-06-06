@@ -1,11 +1,26 @@
-// components/TaskForm.js
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
-import { Portal, Modal, TextInput, Button, Menu, Text, IconButton } from 'react-native-paper';
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard
+} from 'react-native';
+import {
+  Portal,
+  Modal,
+  TextInput,
+  Button,
+  Menu,
+  Text,
+  IconButton
+} from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const priorities = ['Baja', 'Media', 'Alta'];
-const statuses   = ['Pendiente', 'En progreso', 'Completada'];
+const statuses = ['Pendiente', 'En progreso', 'Completada'];
 
 const palette = {
   surface: '#FFFFFF',
@@ -15,7 +30,7 @@ const palette = {
   onPrimary: '#FFFFFF',
 };
 
-const getTodayFormatted = date => {
+const getFormattedDate = date => {
   const now = date || new Date();
   const dd = String(now.getDate()).padStart(2, '0');
   const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -27,32 +42,89 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
   const iv = initialValues || {};
   const [title, setTitle] = useState(iv.title || '');
   const [description, setDescription] = useState(iv.description || '');
+  const [justification, setJustification] = useState(iv.justification || '');
   const [priority, setPriority] = useState(iv.priority || 'Media');
   const [status, setStatus] = useState(iv.status || 'Pendiente');
   const [tags, setTags] = useState((iv.tags || []).join(','));
-  const [dueDate, setDueDate] = useState(
-    iv.due_date ? new Date(iv.due_date.split('-').reverse().join('-')) : new Date()
+
+  const [creationDate, setCreationDate] = useState(
+    iv.created_date
+      ? new Date(iv.created_date.split('-').reverse().join('-'))
+      : new Date()
   );
-  const [showDate, setShowDate] = useState(false);
-  const [steps, setSteps] = useState(iv.steps?.map(s => ({ ...s })) || []);
+  const [showCreationDate, setShowCreationDate] = useState(false);
+
+  const [dueDate, setDueDate] = useState(
+    iv.due_date
+      ? new Date(iv.due_date.split('-').reverse().join('-'))
+      : new Date()
+  );
+  const [showDueDate, setShowDueDate] = useState(false);
+
+  const [steps, setSteps] = useState([]);
   const [newStep, setNewStep] = useState('');
-  const [menuVisible, setMenuVisible] = useState({ p: false, s: false });
+  const [menuPriorityVisible, setMenuPriorityVisible] = useState(false);
+  const [menuStatusVisible, setMenuStatusVisible] = useState(false);
+
+  useEffect(() => {
+    const loadSteps = async () => {
+      if (iv.id) {
+        const saved = await AsyncStorage.getItem(`task_steps_${iv.id}`);
+        if (saved) {
+          try {
+            setSteps(JSON.parse(saved));
+          } catch {
+            setSteps([]);
+          }
+        } else {
+          const defaultSteps = iv.steps?.map((s, i) => ({
+            id: String(i),
+            description: s.description,
+            completed: s.completed
+          })) || [];
+          setSteps(defaultSteps);
+        }
+      } else {
+        setSteps([]);
+      }
+    };
+    loadSteps();
+  }, [iv.id]);
+
+  useEffect(() => {
+    const saveSteps = async () => {
+      if (iv.id) {
+        await AsyncStorage.setItem(`task_steps_${iv.id}`, JSON.stringify(steps));
+      }
+    };
+    saveSteps();
+  }, [steps]);
 
   useEffect(() => {
     setTitle(iv.title || '');
     setDescription(iv.description || '');
+    setJustification(iv.justification || '');
     setPriority(iv.priority || 'Media');
     setStatus(iv.status || 'Pendiente');
     setTags((iv.tags || []).join(','));
-    setSteps(iv.steps?.map(s => ({ ...s })) || []);
+    setCreationDate(
+      iv.created_date
+        ? new Date(iv.created_date.split('-').reverse().join('-'))
+        : new Date()
+    );
     setDueDate(
-      iv.due_date ? new Date(iv.due_date.split('-').reverse().join('-')) : new Date()
+      iv.due_date
+        ? new Date(iv.due_date.split('-').reverse().join('-'))
+        : new Date()
     );
   }, [initialValues]);
 
   const addStep = () => {
     if (!newStep.trim()) return;
-    setSteps(s => [...s, { description: newStep, completed: false }]);
+    setSteps(prev => [
+      ...prev,
+      { id: Date.now().toString(), description: newStep, completed: false }
+    ]);
     setNewStep('');
   };
 
@@ -63,17 +135,30 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
 
   const removeStep = index => setSteps(s => s.filter((_, i) => i !== index));
 
-  const onChangeDate = (event, selectedDate) => {
-    setShowDate(false);
+  const onChangeCreationDate = (event, selectedDate) => {
+    setShowCreationDate(false);
+    if (selectedDate) setCreationDate(selectedDate);
+  };
+
+  const onChangeDueDate = (event, selectedDate) => {
+    setShowDueDate(false);
     if (selectedDate) setDueDate(selectedDate);
   };
 
   const handleSave = () => {
-    const formatted = getTodayFormatted(dueDate);
+    if (!title.trim()) return;
+
+    const formattedCreation = getFormattedDate(creationDate);
+    const formattedDue = getFormattedDate(dueDate);
+
+    const updatedTitle = `${title} - Justificación: ${justification}`;
+
     const payload = {
-      title,
+      title: updatedTitle,
       description,
-      due_date: formatted,
+      justification,
+      created_date: formattedCreation,
+      due_date: formattedDue,
       completed: iv.completed || false,
       user_id: iv.user_id || '',
       status,
@@ -81,9 +166,162 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
       steps,
     };
+
+    if (iv.id) {
+      AsyncStorage.removeItem(`task_steps_${iv.id}`);
+    }
+
     onSubmit(payload);
     onDismiss();
   };
+
+  const renderHeader = () => (
+    <>
+      <Text style={styles.header}>{iv.id ? 'Editar Tarea' : 'Nueva Tarea'}</Text>
+
+      <TextInput
+        label="Título"
+        value={title}
+        onChangeText={setTitle}
+        mode="outlined"
+        outlineColor={palette.outline}
+        activeOutlineColor={palette.primary}
+        style={styles.input}
+      />
+
+      <TextInput
+        label="Descripción"
+        value={description}
+        onChangeText={setDescription}
+        mode="outlined"
+        multiline
+        outlineColor={palette.outline}
+        activeOutlineColor={palette.primary}
+        style={styles.input}
+      />
+
+      <TextInput
+        label="Justificación"
+        value={justification}
+        onChangeText={setJustification}
+        mode="outlined"
+        multiline
+        outlineColor={palette.outline}
+        activeOutlineColor={palette.primary}
+        style={styles.input}
+      />
+
+      <Text style={styles.subHeader}>Fecha de creación</Text>
+      <Button
+        mode="outlined"
+        onPress={() => setShowCreationDate(true)}
+        style={styles.input}
+      >
+        {getFormattedDate(creationDate)}
+      </Button>
+      {showCreationDate && (
+        <DateTimePicker
+          value={creationDate}
+          mode="date"
+          display="default"
+          onChange={onChangeCreationDate}
+        />
+      )}
+
+      <Text style={styles.subHeader}>Fecha de entrega</Text>
+      <Button
+        mode="outlined"
+        onPress={() => setShowDueDate(true)}
+        style={styles.input}
+      >
+        {getFormattedDate(dueDate)}
+      </Button>
+      {showDueDate && (
+        <DateTimePicker
+          value={dueDate}
+          mode="date"
+          display="default"
+          onChange={onChangeDueDate}
+        />
+      )}
+
+      <View style={styles.row}>
+        <Menu
+          visible={menuPriorityVisible}
+          onDismiss={() => setMenuPriorityVisible(false)}
+          anchor={
+            <Button
+              mode="outlined"
+              onPress={() => setMenuPriorityVisible(true)}
+              style={styles.input}
+            >
+              {priority}
+            </Button>
+          }
+        >
+          {priorities.map(p => (
+            <Menu.Item
+              key={p}
+              title={p}
+              onPress={() => {
+                setPriority(p);
+                setMenuPriorityVisible(false);
+              }}
+            />
+          ))}
+        </Menu>
+
+        <Menu
+          visible={menuStatusVisible}
+          onDismiss={() => setMenuStatusVisible(false)}
+          anchor={
+            <Button
+              mode="outlined"
+              onPress={() => setMenuStatusVisible(true)}
+              style={styles.input}
+            >
+              {status}
+            </Button>
+          }
+        >
+          {statuses.map(s => (
+            <Menu.Item
+              key={s}
+              title={s}
+              onPress={() => {
+                setStatus(s);
+                setMenuStatusVisible(false);
+              }}
+            />
+          ))}
+        </Menu>
+      </View>
+
+      <TextInput
+        label="Etiquetas (separadas por coma)"
+        value={tags}
+        onChangeText={setTags}
+        mode="outlined"
+        outlineColor={palette.outline}
+        activeOutlineColor={palette.primary}
+        style={styles.input}
+      />
+
+      <Text style={styles.subHeader}>Pasos / Subtareas</Text>
+      <View style={styles.stepInputRow}>
+        <TextInput
+          placeholder="Nuevo paso"
+          value={newStep}
+          onChangeText={setNewStep}
+          mode="outlined"
+          outlineColor={palette.outline}
+          activeOutlineColor={palette.primary}
+          style={[styles.input, { flex: 1, marginBottom: 0 }]}
+        />
+        <IconButton icon="plus" onPress={addStep} />
+      </View>
+    </>
+  );
 
   return (
     <Portal>
@@ -96,127 +334,16 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
           onDismiss={onDismiss}
           contentContainerStyle={styles.modal}
         >
-          <Text style={styles.header}>{iv.id ? 'Editar Tarea' : 'Nueva Tarea'}</Text>
-
-          <TextInput
-            label="Título"
-            value={title}
-            onChangeText={setTitle}
-            mode="outlined"
-            outlineColor={palette.outline}
-            activeOutlineColor={palette.primary}
-            style={styles.input}
-          />
-
-          <TextInput
-            label="Descripción"
-            value={description}
-            onChangeText={setDescription}
-            mode="outlined"
-            multiline
-            outlineColor={palette.outline}
-            activeOutlineColor={palette.primary}
-            style={styles.input}
-          />
-
-          <Text style={styles.subHeader}>Fecha de entrega</Text>
-          <Button
-            mode="outlined"
-            onPress={() => setShowDate(true)}
-            style={styles.input}
+          {/* Un ScrollView con keyboardShouldPersistTaps evita que el teclado se oculte */}
+          <ScrollView
+            contentContainerStyle={{ paddingBottom: 20 }}
+            keyboardShouldPersistTaps="always"
+            showsVerticalScrollIndicator={false}
           >
-            {getTodayFormatted(dueDate)}
-          </Button>
-          {showDate && (
-            <DateTimePicker
-              value={dueDate}
-              mode="date"
-              display="default"
-              onChange={onChangeDate}
-            />
-          )}
+            {renderHeader()}
 
-          <View style={styles.row}>
-            <Menu
-              visible={menuVisible.p}
-              onDismiss={() => setMenuVisible({ p: false })}
-              anchor={
-                <Button
-                  mode="outlined"
-                  onPress={() => setMenuVisible({ p: true })}
-                  style={styles.input}
-                >
-                  {priority}
-                </Button>
-              }
-            >
-              {priorities.map(p => (
-                <Menu.Item
-                  key={p}
-                  title={p}
-                  onPress={() => {
-                    setPriority(p);
-                    setMenuVisible({ p: false });
-                  }}
-                />
-              ))}
-            </Menu>
-
-            <Menu
-              visible={menuVisible.s}
-              onDismiss={() => setMenuVisible({ s: false })}
-              anchor={
-                <Button
-                  mode="outlined"
-                  onPress={() => setMenuVisible({ s: true })}
-                  style={styles.input}
-                >
-                  {status}
-                </Button>
-              }
-            >
-              {statuses.map(s => (
-                <Menu.Item
-                  key={s}
-                  title={s}
-                  onPress={() => {
-                    setStatus(s);
-                    setMenuVisible({ s: false });
-                  }}
-                />
-              ))}
-            </Menu>
-          </View>
-
-          <TextInput
-            label="Etiquetas (separadas por coma)"
-            value={tags}
-            onChangeText={setTags}
-            mode="outlined"
-            outlineColor={palette.outline}
-            activeOutlineColor={palette.primary}
-            style={styles.input}
-          />
-
-          <Text style={styles.subHeader}>Pasos / Subtareas</Text>
-          <View style={styles.stepInputRow}>
-            <TextInput
-              placeholder="Nuevo paso"
-              value={newStep}
-              onChangeText={setNewStep}
-              mode="outlined"
-              outlineColor={palette.outline}
-              activeOutlineColor={palette.primary}
-              style={[styles.input, { flex: 1, marginBottom: 0 }]}  
-            />
-            <IconButton icon="plus" onPress={addStep} />
-          </View>
-          <FlatList
-            data={steps}
-            keyExtractor={(_, i) => String(i)}
-            style={{ maxHeight: 100 }}
-            renderItem={({ item, index }) => (
-              <View style={styles.stepRow}>
+            {steps.map((item, index) => (
+              <View key={item.id} style={styles.stepRow}>
                 <IconButton
                   icon={item.completed ? 'check' : 'checkbox-blank-outline'}
                   onPress={() => toggleStep(index)}
@@ -226,21 +353,22 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
                 </Text>
                 <IconButton icon="delete" onPress={() => removeStep(index)} />
               </View>
-            )}
-          />
+            ))}
 
-          <View style={styles.actions}>
-            <Button onPress={onDismiss} style={{ marginRight: 8 }}>
-              Cancelar
-            </Button>
-            <Button
-              mode="contained"
-              onPress={handleSave}
-              style={{ backgroundColor: palette.primary }}
-            >
-              Guardar
-            </Button>
-          </View>
+            <View style={styles.actions}>
+              <Button onPress={onDismiss} style={{ marginRight: 8 }}>
+                Cancelar
+              </Button>
+              <Button
+                mode="contained"
+                onPress={handleSave}
+                style={{ backgroundColor: palette.primary }}
+                disabled={!title.trim()}
+              >
+                Guardar
+              </Button>
+            </View>
+          </ScrollView>
         </Modal>
       </KeyboardAvoidingView>
     </Portal>
@@ -252,17 +380,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'flex-start',
-    paddingLeft: 40,           // ajustado para centrar mejor
+    paddingLeft: 40,
   },
- modal: {
-  backgroundColor: palette.surface,
-  padding: 20,
-  borderRadius: 8,
-  alignSelf: 'flex-end', // Lo alinea a la derecha
-  marginRight: 20,       // Separación del borde derecho
-  width: '90%',          // Asegura que no ocupe toda la pantalla
-},
-
+  modal: {
+    backgroundColor: palette.surface,
+    padding: 20,
+    borderRadius: 8,
+    alignSelf: 'flex-end',
+    marginRight: 20,
+    width: '90%',
+    maxHeight: '90%',
+  },
   header: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -305,6 +433,6 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 10,
+    marginTop: 20,
   },
 });
