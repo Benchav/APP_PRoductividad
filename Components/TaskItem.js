@@ -12,9 +12,16 @@ const palette = {
   onSurface: '#34495E',         // gris oscurito para texto
 };
 
-export default function TaskItem({ task, onToggle, onDelete }) {
+export default function TaskItem({ task = {}, onToggle, onDelete }) {
+  console.log('TaskItem → task:', task);
+
+  const justificationText = task.justification || 'Sin justificación';
+  const justificationColor = task.justification ? palette.outline : '#bbb';
+  const justificationFontStyle = task.justification ? 'italic' : 'normal';
+
   return (
-    <Card style={[
+    <Card
+      style={[
         styles.card,
         { backgroundColor: palette.surface },
         task.completed && { backgroundColor: palette.primaryContainer }
@@ -27,19 +34,74 @@ export default function TaskItem({ task, onToggle, onDelete }) {
           color={palette.primary}
         />
         <View style={styles.textContainer}>
-          <Text style={[
-            styles.title,
-            { color: palette.onSurface },
-            task.completed && styles.completedText
-          ]}>
+          <Text
+            style={[
+              styles.title,
+              { color: palette.onSurface },
+              task.completed && styles.completedText
+            ]}
+          >
             {task.title}
           </Text>
-          {task.due_date && (
-            <Text style={[styles.date, { color: palette.outline }]}>  
-              Creada: {task.due_date}
+
+          {task.description ? (
+            <Text style={[styles.description, { color: palette.outline }]}>
+              {task.description}
             </Text>
+          ) : null}
+
+          <Text
+            style={[
+              styles.justification,
+              {
+                color: justificationColor,
+                fontStyle: justificationFontStyle
+              }
+            ]}
+          >
+            Justificación: {justificationText}
+          </Text>
+
+          {task.due_date ? (
+            <Text style={[styles.date, { color: palette.outline }]}>
+              Fecha: {task.due_date}
+            </Text>
+          ) : null}
+
+          {/* Mostrar pasos si existen */}
+          {task.steps && task.steps.length > 0 && (
+            <View style={{ marginTop: 4 }}>
+              <Text style={[styles.subtitle, { color: palette.outline }]}>
+                Pasos:
+              </Text>
+              {task.steps.map((step, idx) => (
+                <Text
+                  key={idx}
+                  style={[
+                    styles.stepText,
+                    { color: step.completed ? palette.primary : palette.outline },
+                    step.completed && { textDecorationLine: 'line-through' }
+                  ]}
+                >
+                  • {step.description}
+                </Text>
+              ))}
+            </View>
           )}
-          <Text style={[styles.subtitle, { color: palette.outline }]}>   
+
+          {/* Mostrar tags si existen */}
+          {task.tags && task.tags.length > 0 && (
+            <View style={{ marginTop: 4 }}>
+              <Text style={[styles.subtitle, { color: palette.outline }]}>
+                Etiquetas:
+              </Text>
+              <Text style={[styles.tags, { color: palette.outline }]}>
+                {task.tags.join(', ')}
+              </Text>
+            </View>
+          )}
+
+          <Text style={[styles.subtitle, { color: palette.outline }]}>
             {task.priority} · {task.status}
           </Text>
         </View>
@@ -68,20 +130,40 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
   },
-  title: {                                                                                                                                                                                                                                                                                                                                                                                                                            
+  title: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  description: {
+    fontSize: 14,
+    marginTop: 2,
+  },
+  justification: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginTop: 2,
   },
   date: {
     fontSize: 12,
     marginTop: 2,
   },
   subtitle: {
-    fontSize: 12,                                                                                                                                                             
+    fontSize: 12,
     marginTop: 4,
+    fontWeight: 'bold',
+  },
+  stepText: {
+    fontSize: 12,
+    marginLeft: 8,
+    marginTop: 2,
+  },
+  tags: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginTop: 2,
   },
   completedText: {
     textDecorationLine: 'line-through',
-    color: palette.outline, 
+    color: palette.outline,
   },
 });

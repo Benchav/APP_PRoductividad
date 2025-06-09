@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "MiAppProductividad",
-    "slug": "MiAppProductividad",
+    "slug": "tasko",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -23,6 +23,18 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c8306234-14e8-4706-b5e6-45c58fa04a2c"
+      }
+    },
+    "owner": "benchav09",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c8306234-14e8-4706-b5e6-45c58fa04a2c"
     }
   }
 }

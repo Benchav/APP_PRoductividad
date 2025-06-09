@@ -1,3 +1,4 @@
+// TaskForm.js
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -5,7 +6,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Keyboard
 } from 'react-native';
 import {
   Portal,
@@ -38,7 +38,13 @@ const getFormattedDate = date => {
   return `${dd}-${mm}-${yyyy}`;
 };
 
-export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }) {
+export default function TaskForm({
+  visible,
+  onDismiss,
+  onSubmit,
+  initialValues,
+  showJustification = false,  // <— Nuevo prop para controlar visibilidad
+}) {
   const iv = initialValues || {};
   const [title, setTitle] = useState(iv.title || '');
   const [description, setDescription] = useState(iv.description || '');
@@ -66,7 +72,7 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
   const [menuPriorityVisible, setMenuPriorityVisible] = useState(false);
   const [menuStatusVisible, setMenuStatusVisible] = useState(false);
 
-  // Cuando se abre el modal para UNA NUEVA TAREA (no iv.id), reinicializar todos los campos
+  // Reinicializar campos al abrir modal para NUEVA tarea
   useEffect(() => {
     if (visible && !iv.id) {
       setTitle('');
@@ -84,6 +90,7 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
     }
   }, [visible, iv.id]);
 
+  // Cargar pasos guardados o iniciales
   useEffect(() => {
     const loadSteps = async () => {
       if (iv.id) {
@@ -109,6 +116,7 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
     loadSteps();
   }, [iv.id]);
 
+  // Guardar pasos en AsyncStorage
   useEffect(() => {
     const saveSteps = async () => {
       if (iv.id) {
@@ -118,8 +126,8 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
     saveSteps();
   }, [steps]);
 
+  // Recargar valores al cambiar initialValues
   useEffect(() => {
-    // Cuando initialValues cambie (por ejemplo, editar), cargar sus valores
     setTitle(iv.title || '');
     setDescription(iv.description || '');
     setJustification(iv.justification || '');
@@ -146,38 +154,29 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
     ]);
     setNewStep('');
   };
-
   const toggleStep = index =>
     setSteps(s =>
       s.map((st, i) => (i === index ? { ...st, completed: !st.completed } : st))
     );
-
   const removeStep = index => setSteps(s => s.filter((_, i) => i !== index));
 
-  const onChangeCreationDate = (event, selectedDate) => {
+  const onChangeCreationDate = (e, sel) => {
     setShowCreationDate(false);
-    if (selectedDate) setCreationDate(selectedDate);
+    if (sel) setCreationDate(sel);
   };
-
-  const onChangeDueDate = (event, selectedDate) => {
+  const onChangeDueDate = (e, sel) => {
     setShowDueDate(false);
-    if (selectedDate) setDueDate(selectedDate);
+    if (sel) setDueDate(sel);
   };
 
   const handleSave = () => {
     if (!title.trim()) return;
-
-    const formattedCreation = getFormattedDate(creationDate);
-    const formattedDue = getFormattedDate(dueDate);
-
-    const updatedTitle = `${title} - Justificación: ${justification}`;
-
     const payload = {
-      title: updatedTitle,
+      title,                          // <— guardamos el título limpio
       description,
       justification,
-      created_date: formattedCreation,
-      due_date: formattedDue,
+      created_date: getFormattedDate(creationDate),
+      due_date: getFormattedDate(dueDate),
       completed: iv.completed || false,
       user_id: iv.user_id || '',
       status,
@@ -185,18 +184,16 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
       steps,
     };
-
-    if (iv.id) {
-      AsyncStorage.removeItem(`task_steps_${iv.id}`);
-    }
-
+    if (iv.id) AsyncStorage.removeItem(`task_steps_${iv.id}`);
     onSubmit(payload);
     onDismiss();
   };
 
   const renderHeader = () => (
     <>
-      <Text style={styles.header}>{iv.id ? 'Editar Tarea' : 'Nueva Tarea'}</Text>
+      <Text style={styles.header}>
+        {iv.id ? 'Editar Tarea' : 'Nueva Tarea'}
+      </Text>
 
       <TextInput
         label="Título"
@@ -219,16 +216,18 @@ export default function TaskForm({ visible, onDismiss, onSubmit, initialValues }
         style={styles.input}
       />
 
-      <TextInput
-        label="Justificación"
-        value={justification}
-        onChangeText={setJustification}
-        mode="outlined"
-        multiline
-        outlineColor={palette.outline}
-        activeOutlineColor={palette.primary}
-        style={styles.input}
-      />
+      {showJustification && (
+        <TextInput
+          label="Justificación"
+          value={justification}
+          onChangeText={setJustification}
+          mode="outlined"
+          multiline
+          outlineColor={palette.outline}
+          activeOutlineColor={palette.primary}
+          style={styles.input}
+        />
+      )}
 
       <Text style={styles.subHeader}>Fecha de creación</Text>
       <Button

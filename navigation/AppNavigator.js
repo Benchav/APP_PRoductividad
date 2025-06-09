@@ -71,7 +71,7 @@ function MoreMenuButton({ color, size }) {
         title="Enfoque"
         description="Modo concentración"
         left={props => <List.Icon {...props} icon="timer-outline" color={themeColors.primary} />}
-        onPress={() => { setVisible(false); navigation.navigate("Focus"); }}
+        onPress={() => { setVisible(false); navigation.navigate("FocusModeViews"); }}
       />
     </Menu>
   );
@@ -97,7 +97,6 @@ function BottomTabNavigator() {
           const [outline, filled] = icons[route.name];
           const iconName = focused ? filled : outline;
           if (route.name === "More") {
-            // renderDropdownButton
             return <MoreMenuButton color={color} size={size} />;
           }
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -124,10 +123,10 @@ export default function AppNavigator() {
           <Stack.Screen name="Register" component={RegisterViews} options={{ headerShown: false }} />
           <Stack.Screen name="Main"     component={BottomTabNavigator} options={{ headerShown: false }} />
           {/* Rutas “Más” */}
-          <Stack.Screen name="Perfil"    component={ProfileViews}           options={{ title: "Perfil" }} />
-          <Stack.Screen name="Progreso"  component={TaskStatsViews}         options={{ title: "Progreso" }} />
-          <Stack.Screen name="Historial" component={DeletedTasksStoreViews} options={{ title: "Historial" }} />
-          <Stack.Screen name="Focus"     component={FocusModeViews}         options={{ title: "Enfoque" }} />
+          <Stack.Screen name="Perfil"            component={ProfileViews}           options={{ title: "Perfil" }} />
+          <Stack.Screen name="Progreso"          component={TaskStatsViews}         options={{ title: "Progreso" }} />
+          <Stack.Screen name="Historial"         component={DeletedTasksStoreViews} options={{ title: "Historial" }} />
+          <Stack.Screen name="FocusModeViews"    component={FocusModeViews}         options={{ title: "Enfoque" }} />
         </Stack.Navigator>
       </NavigationContainer>
     </PaperProvider>
@@ -157,4 +156,3 @@ const styles = StyleSheet.create({
     minWidth: 180,
   },
 });
-

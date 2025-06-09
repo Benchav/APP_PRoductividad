@@ -1,4 +1,4 @@
-// Views/TasksView.js
+// TasksView.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -15,19 +15,12 @@ import {
   Card,
   ProgressBar,
   FAB,
+  Button,
 } from 'react-native-paper';
 import tasksController from '../Controllers/taskController';
 import TaskItem from '../../Components/TaskItem';
 import TaskForm from '../../Components/TaskForm';
 
-const TODAY = () => {
-  const d = new Date();
-  return `${String(d.getDate()).padStart(2, '0')}-${String(
-    d.getMonth() + 1
-  ).padStart(2, '0')}-${d.getFullYear()}`;
-};
-
-// Nueva paleta basada en LoginViews, con fondo blanco puro
 const palette = {
   background: '#FFFFFF',
   primary: '#5DADE2',
@@ -38,7 +31,7 @@ const palette = {
   onPrimary: '#FFFFFF',
 };
 
-export default function TasksView() {
+export default function TasksView({ navigation }) {
   const [tasks, setTasks] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
@@ -51,7 +44,20 @@ export default function TasksView() {
 
   const load = async () => {
     const all = await tasksController.getTasks();
-    setTasks(all || []);
+    // Separar justificación del título si no viene en el campo
+    const parsed = all.map(t => {
+      if ((t.justification === undefined || t.justification === '') &&
+          t.title.includes(' - Justificación: ')) {
+        const parts = t.title.split(' - Justificación: ');
+        return {
+          ...t,
+          title: parts[0],
+          justification: parts[1] || ''
+        };
+      }
+      return t;
+    });
+    setTasks(parsed || []);
   };
 
   const apply = (all, txt, st) => {
@@ -67,17 +73,22 @@ export default function TasksView() {
     setFiltered(list);
   };
 
-  const open = t => { setEditing(t); setFormVisible(true); };
-  const close = () => { setEditing(null); setFormVisible(false); };
+  const openForm = t => {
+    setEditing(t);
+    setFormVisible(true);
+  };
+  const closeForm = () => {
+    setEditing(null);
+    setFormVisible(false);
+  };
 
   const save = async data => {
-    // En lugar de sobrescribir, enviamos exactamente lo que viene del formulario:
     if (editing) {
       await tasksController.updateTask(editing.id, data);
     } else {
       await tasksController.createTask(data);
     }
-    close();
+    closeForm();
     load();
   };
 
@@ -104,18 +115,14 @@ export default function TasksView() {
   const comp = tasks.filter(t => t.status === 'Completada').length;
   const pct = total ? comp / total : 0;
 
-  // Función para ordenar por estado: primero Pendiente, luego En progreso, al final Completada
   const sortByStatus = list => {
     const order = { 'Pendiente': 0, 'En progreso': 1, 'Completada': 2 };
     return [...list].sort((a, b) => order[a.status] - order[b.status]);
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: palette.background }]}>
-      {/* Espacio superior seguro */}
+    <View style={[styles.container, { backgroundColor: palette.background }]}>  
       <View style={styles.safeSpacer} />
-
-      {/* Espacio adicional antes de la barra de búsqueda */}
       <View style={styles.searchSpacer} />
 
       <TextInput
@@ -172,9 +179,20 @@ export default function TasksView() {
 
       <ScrollView contentContainerStyle={styles.list}>
         {sortByStatus(filtered).map(t => (
-          <TouchableOpacity key={t.id} onPress={() => open(t)}>
-            <TaskItem task={t} onToggle={toggle} onDelete={del} />
-          </TouchableOpacity>
+          <View key={t.id} style={styles.taskRow}>
+            <TouchableOpacity style={styles.taskCard} onPress={() => openForm(t)}>
+              <TaskItem task={t} onToggle={toggle} onDelete={del} />
+            </TouchableOpacity>
+            <Button
+              mode="outlined"
+              compact
+              onPress={() => navigation.navigate('FocusModeViews', { taskId: t.id })}
+              style={styles.focusBtn}
+              textColor={palette.primary}
+            >
+              Enfocar
+            </Button>
+          </View>
         ))}
         {!filtered.length && (
           <Text style={[styles.empty, { color: palette.outline }]}>No hay tareas</Text>
@@ -183,9 +201,10 @@ export default function TasksView() {
 
       <TaskForm
         visible={formVisible}
-        onDismiss={close}
+        onDismiss={closeForm}
         onSubmit={save}
         initialValues={editing}
+        showJustification={formVisible && editing !== null}
       />
 
       <FAB
@@ -193,7 +212,7 @@ export default function TasksView() {
         label="Nueva tarea"
         style={[styles.fab, { backgroundColor: palette.primary }]}
         color={palette.onPrimary}
-        onPress={() => open(null)}
+        onPress={() => openForm(null)}
       />
     </View>
   );
@@ -202,7 +221,6 @@ export default function TasksView() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeSpacer: { height: Platform.OS === 'android' ? StatusBar.currentHeight : 20 },
-  // nuevo espaciador antes de la barra de búsqueda
   searchSpacer: { height: 16 },
 
   search: {
@@ -244,6 +262,10 @@ const styles = StyleSheet.create({
   bar: { height: 6, borderRadius: 4 },
 
   list: { paddingHorizontal: 8, paddingBottom: 100 },
+  taskRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  taskCard: { flex: 1 },
+  focusBtn: { marginLeft: 8 },
+
   empty: { textAlign: 'center', marginTop: 20 },
 
   fab: { position: 'absolute', right: 24, bottom: 30 },

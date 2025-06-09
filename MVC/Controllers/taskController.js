@@ -1,15 +1,14 @@
-// Controllers/taskController.js
 import tasksModel from '../Models/taskModel';
 import { addDeletedTask } from '../../Components/deletedTasksStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const taskController = {
-  /** Obtiene todas las tareas. */
+
   getTasks: async () => {
     return await tasksModel.getAllTasks();
   },
 
-  /** Obtiene tareas de un usuario. */
+ 
   getTasksByUserId: async (userId) => {
     return await tasksModel.getTasksByUser(userId);
   },

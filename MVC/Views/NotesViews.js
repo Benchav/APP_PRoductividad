@@ -1,4 +1,3 @@
-// Views/NotesViews.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -21,23 +20,22 @@ import {
   IconButton,
   Divider,
   ProgressBar,
+  TouchableRipple,
 } from 'react-native-paper';
 import notesController from '../Controllers/notesController';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Paleta suavizada compartida
 const palette = {
-  background: '#FDFEFE',       // blanco muy suave
-  surface: '#FFFFFF',          // blanco puro
-  primary: '#82C3F7',          // azul más intenso que #AED6F1
-  primaryContainer: '#E8F6F3', // verde-agua suave
-  outline: '#AEB6BF',          // gris claro suave
-  onSurface: '#34495E',        // gris oscurito suave
-  onPrimary: '#FFFFFF',        // blanco para texto sobre primary
-  error: '#E74C3C',            // rojo suave para errores
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  primary: '#82C3F7',
+  primaryContainer: '#E8F6F3',
+  outline: '#AEB6BF',
+  onSurface: '#34495E',
+  onPrimary: '#FFFFFF',
+  error: '#E74C3C',
 };
-
-const bgImage = { uri: 'https://www.master-mbaonline.com/wp-content/uploads/2020/10/tecnicas-para-mejorar-la-productividad-de-las-personas-en-el-trabajo.png' };
 
 export default function NotesViews() {
   const [notes, setNotes] = useState([]);
@@ -49,7 +47,9 @@ export default function NotesViews() {
   const [tags, setTags] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => { fetchNotes(); }, []);
+  useEffect(() => {
+    fetchNotes();
+  }, []);
 
   const fetchNotes = async () => {
     setLoading(true);
@@ -62,7 +62,7 @@ export default function NotesViews() {
     }
   };
 
-  const openForm = n => {
+  const openForm = (n) => {
     if (n) {
       setEditing(n);
       setTitle(n.title || '');
@@ -73,7 +73,10 @@ export default function NotesViews() {
   };
   const closeForm = () => {
     setEditing(null);
-    setTitle(''); setTexto(''); setTags(''); setError('');
+    setTitle('');
+    setTexto('');
+    setTags('');
+    setError('');
     setFormVisible(false);
   };
   const save = async () => {
@@ -81,28 +84,52 @@ export default function NotesViews() {
       setError('Título y contenido son requeridos');
       return;
     }
-    const payload = { title: title.trim(), texto: texto.trim(), tags: tags.split(',').map(t => t.trim()).filter(Boolean) };
+    const payload = {
+      title: title.trim(),
+      texto: texto.trim(),
+      tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+    };
     try {
       if (editing) await notesController.updateNote(editing.id, payload);
       else await notesController.createNote(payload);
-      closeForm(); fetchNotes();
+      closeForm();
+      fetchNotes();
     } catch {
       setError('Error al guardar la nota');
     }
   };
-  const remove = id => Alert.alert('Eliminar nota', '¿Confirmas que deseas eliminar esta nota permanentemente?', [
-    { text: 'Cancelar', style: 'cancel' },
-    { text: 'Eliminar', style: 'destructive', onPress: async () => { await notesController.deleteNote(id); fetchNotes(); } }
-  ]);
+  const remove = (id) =>
+    Alert.alert(
+      'Eliminar nota',
+      '¿Confirmas que deseas eliminar esta nota permanentemente?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            await notesController.deleteNote(id);
+            fetchNotes();
+          },
+        },
+      ]
+    );
 
   return (
-    <View style={[styles.container, { backgroundColor: palette.background }]}>      
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       <View style={styles.spacer} />
 
       {/* Header */}
       <View style={styles.header}>
-        <Text variant="titleLarge" style={[styles.headerTitle, { color: palette.onSurface }]}>  
-          <MaterialCommunityIcons name="notebook" size={24} color={palette.primary} /> Mis Notas
+        <Text
+          variant="titleLarge"
+          style={[styles.headerTitle, { color: palette.onSurface }]}>
+          <MaterialCommunityIcons
+            name="notebook"
+            size={24}
+            color={palette.primary}
+          />{' '}
+          Mis Notas
         </Text>
         <Text variant="bodySmall" style={{ color: palette.outline }}>
           {notes.length} {notes.length === 1 ? 'nota' : 'notas'}
@@ -114,58 +141,153 @@ export default function NotesViews() {
       {loading && <ProgressBar indeterminate color={palette.primary} />}
 
       {/* Notes List */}
-      <ScrollView contentContainerStyle={styles.list} scrollEnabled={!formVisible}>
-        {notes.map(n => (
-          <Surface key={n.id} style={[styles.noteCard, { backgroundColor: palette.surface }]} elevation={2}>
-            <View style={styles.cardHeader}>
-              <Text variant="titleMedium" style={[styles.noteTitle, { color: palette.onSurface }]} numberOfLines={1}>
-                {n.title || 'Sin título'}
-              </Text>
-              <IconButton icon="delete-outline" size={20} iconColor={palette.error} onPress={() => remove(n.id)} />
-            </View>
-            <Text variant="bodyMedium" style={[styles.noteContent, { color: palette.onSurface }]} numberOfLines={3}>
-              {n.texto || 'Sin contenido'}
-            </Text>
-            {!!n.tags?.length && (
-              <View style={styles.tagsContainer}>
-                {n.tags.map(tag => (
-                  <Chip key={tag} compact style={[styles.tag, { backgroundColor: palette.primaryContainer }]} textStyle={{ color: palette.onSurface }}>
-                    #{tag}
-                  </Chip>
-                ))}
+      <ScrollView
+        contentContainerStyle={styles.list}
+        scrollEnabled={!formVisible}>
+        {notes.map((n) => (
+          <TouchableRipple
+            key={n.id}
+            style={styles.noteCard}
+            rippleColor={palette.outline}
+            onPress={() => openForm(n)}>
+            <Surface
+              style={[styles.noteCard, { backgroundColor: palette.surface }]}
+              elevation={2}>
+              <View style={styles.cardHeader}>
+                <Text
+                  variant="titleMedium"
+                  style={[styles.noteTitle, { color: palette.onSurface }]}
+                  numberOfLines={1}>
+                  {n.title || 'Sin título'}
+                </Text>
+                <IconButton
+                  icon="delete-outline"
+                  size={20}
+                  iconColor={palette.error}
+                  onPress={() => remove(n.id)}
+                />
               </View>
-            )}
-          </Surface>
+              <Text
+                variant="bodyMedium"
+                style={[styles.noteContent, { color: palette.onSurface }]}
+                numberOfLines={3}>
+                {n.texto || 'Sin contenido'}
+              </Text>
+              {!!n.tags?.length && (
+                <View style={styles.tagsContainer}>
+                  {n.tags.map((tag) => (
+                    <Chip
+                      key={tag}
+                      compact
+                      style={[styles.tag, { backgroundColor: palette.primaryContainer }]}
+                      textStyle={{ color: palette.onSurface }}>
+                      #{tag}
+                    </Chip>
+                  ))}
+                </View>
+              )}
+            </Surface>
+          </TouchableRipple>
         ))}
         {!loading && notes.length === 0 && (
           <View style={styles.emptyState}>
-            <MaterialCommunityIcons name="note-off-outline" size={40} color={palette.outline} />
-            <Text variant="bodyLarge" style={{ color: palette.outline }}>No hay notas creadas</Text>
+            <MaterialCommunityIcons
+              name="note-off-outline"
+              size={40}
+              color={palette.outline}
+            />
+            <Text variant="bodyLarge" style={{ color: palette.outline }}>
+              No hay notas creadas
+            </Text>
           </View>
         )}
       </ScrollView>
 
       {/* FAB */}
-      <FAB icon="plus" label="Nueva nota" style={[styles.fab, { backgroundColor: palette.primary }]} color={palette.onPrimary} onPress={() => openForm()} />
+      <FAB
+        icon="plus"
+        label="Nueva nota"
+        style={[styles.fab, { backgroundColor: palette.primary }]}
+        color={palette.onPrimary}
+        onPress={() => openForm()}
+      />
 
       {/* Note Editor Modal */}
       <Portal>
-        <Modal visible={formVisible} onDismiss={closeForm} contentContainerStyle={[styles.modal, { backgroundColor: palette.surface }]}>          
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContent}>
-            <Text variant="titleMedium" style={[styles.modalTitle, { color: palette.onSurface }]}>  
-              <MaterialCommunityIcons name={editing ? 'pencil' : 'plus'} size={20} color={palette.primary} /> {editing ? 'Editar' : 'Nueva'} Nota
+        <Modal
+          visible={formVisible}
+          onDismiss={closeForm}
+          contentContainerStyle={[styles.modal, { backgroundColor: palette.surface }]}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.modalContent}>
+            <Text
+              variant="titleMedium"
+              style={[styles.modalTitle, { color: palette.onSurface }]}>
+              <MaterialCommunityIcons
+                name={editing ? 'pencil' : 'plus'}
+                size={20}
+                color={palette.primary}
+              />{' '}
+              {editing ? 'Editar' : 'Nueva'} Nota
             </Text>
 
-            <TextInput label="Título" value={title} onChangeText={setTitle} mode="outlined" dense style={styles.input} outlineColor={palette.outline} activeOutlineColor={palette.primary} placeholderTextColor={palette.outline} maxLength={60} />
-            <TextInput label="Contenido" value={texto} onChangeText={setTexto} mode="outlined" multiline numberOfLines={4} style={[styles.input, styles.textArea]} outlineColor={palette.outline} activeOutlineColor={palette.primary} />
-            <TextInput label="Etiquetas (separadas por comas)" value={tags} onChangeText={setTags} mode="outlined" dense style={styles.input} outlineColor={palette.outline} activeOutlineColor={palette.primary} />
+            <TextInput
+              label="Título"
+              value={title}
+              onChangeText={setTitle}
+              mode="outlined"
+              dense
+              style={styles.input}
+              outlineColor={palette.outline}
+              activeOutlineColor={palette.primary}
+              placeholderTextColor={palette.outline}
+              maxLength={60}
+            />
+            <TextInput
+              label="Contenido"
+              value={texto}
+              onChangeText={setTexto}
+              mode="outlined"
+              multiline
+              numberOfLines={4}
+              style={[styles.input, styles.textArea]}
+              outlineColor={palette.outline}
+              activeOutlineColor={palette.primary}
+            />
+            <TextInput
+              label="Etiquetas (separadas por comas)"
+              value={tags}
+              onChangeText={setTags}
+              mode="outlined"
+              dense
+              style={styles.input}
+              outlineColor={palette.outline}
+              activeOutlineColor={palette.primary}
+            />
             {error ? (
-              <Text variant="bodySmall" style={[styles.error, { color: palette.error }]}>⚠️ {error}</Text>
+              <Text
+                variant="bodySmall"
+                style={[styles.error, { color: palette.error }]}>
+                ⚠️ {error}
+              </Text>
             ) : null}
 
             <View style={styles.modalActions}>
-              <Button mode="outlined" onPress={closeForm} style={{ borderColor: palette.outline }} textColor={palette.onSurface}>Cancelar</Button>
-              <Button mode="contained" onPress={save} style={{ backgroundColor: palette.primary }} textColor={palette.onPrimary}>Guardar</Button>
+              <Button
+                mode="outlined"
+                onPress={closeForm}
+                style={{ borderColor: palette.outline }}
+                textColor={palette.onSurface}>
+                Cancelar
+              </Button>
+              <Button
+                mode="contained"
+                onPress={save}
+                style={{ backgroundColor: palette.primary }}
+                textColor={palette.onPrimary}>
+                Guardar
+              </Button>
             </View>
           </KeyboardAvoidingView>
         </Modal>
@@ -183,13 +305,23 @@ const styles = StyleSheet.create({
 
   list: { padding: 16, gap: 12, paddingBottom: 100 },
   noteCard: { borderRadius: 12, padding: 16, gap: 8 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   noteTitle: { flex: 1, fontWeight: '500' },
   noteContent: { lineHeight: 22 },
   tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   tag: { borderRadius: 6 },
 
-  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 40, gap: 16 },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    gap: 16,
+  },
 
   fab: { position: 'absolute', right: 16, bottom: 16, borderRadius: 16 },
 
@@ -199,5 +331,10 @@ const styles = StyleSheet.create({
   input: { backgroundColor: 'transparent' },
   textArea: { minHeight: 120, textAlignVertical: 'top' },
   error: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 16 },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 16,
+  },
 });
