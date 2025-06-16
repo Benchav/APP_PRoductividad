@@ -1,27 +1,36 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  StyleSheet,
-  Alert,
-  ImageBackground
-} from "react-native";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, ImageBackground } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import focusModeController from "../Controllers/focusModeController";
 
 export default function FocusModeViews({ route, navigation }) {
   const taskId = route?.params?.taskId;
-
   const [timeLeft, setTimeLeft] = useState(60);
   const [initialSeconds, setInitialSeconds] = useState(60);
   const [userTime, setUserTime] = useState(1);
   const [isRunning, setIsRunning] = useState(false);
   const timerRef = useRef(null);
+  // Ref para instancia de sonido:
+  const soundRef = useRef(null);
 
+  // Función para detener y descargar sonido
+  const cleanupSound = async () => {
+    try {
+      if (soundRef.current) {
+        await focusModeController.stopSound(soundRef.current);
+      }
+    } catch (e) {
+      console.warn("Error limpiando sonido:", e);
+    } finally {
+      soundRef.current = null;
+    }
+  };
+
+  // Temporizador
   useEffect(() => {
-    if (!taskId) return; // No ejecutar lógica si no hay taskId
+    if (!taskId) return;
 
+    // Iniciar o detener intervalo
     if (isRunning && timerRef.current == null) {
       timerRef.current = setInterval(() => {
         setTimeLeft(prev => prev - 1);
@@ -31,16 +40,22 @@ export default function FocusModeViews({ route, navigation }) {
       timerRef.current = null;
     }
 
+    // Al llegar a 0
     if (timeLeft === 0 && isRunning) {
       clearInterval(timerRef.current);
       timerRef.current = null;
       setIsRunning(false);
-      focusModeController.playSound();
 
+      // Reproducir sonido y almacenar instancia en ref
+      focusModeController.playSound().then(soundInstance => {
+        if (soundInstance) {
+          soundRef.current = soundInstance;
+        }
+      });
+
+      // Guardar en backend
       const minutesSpent = Math.ceil(initialSeconds / 60);
-
-      focusModeController
-        .postFocusTime(taskId, minutesSpent)
+      focusModeController.postFocusTime(taskId, minutesSpent)
         .then(() => {
           Alert.alert("¡Listo!", `Registrado ${minutesSpent} min en modo enfoque.`);
         })
@@ -54,8 +69,24 @@ export default function FocusModeViews({ route, navigation }) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
+      // No limpiamos sonido aquí para permitir que siga sonando hasta que la pantalla pierda foco
     };
-  }, [isRunning, timeLeft, initialSeconds]);
+  }, [isRunning, timeLeft, initialSeconds, taskId]);
+
+  // Limpieza al salir o perder foco
+  useFocusEffect(
+    useCallback(() => {
+      // Al ganar foco: nada especial
+      return () => {
+        // Al perder foco o desmontar, detenemos sonido y timer
+        cleanupSound();
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+      };
+    }, [])
+  );
 
   const handleSetTime = () => {
     if (userTime <= 0) {
@@ -87,11 +118,7 @@ export default function FocusModeViews({ route, navigation }) {
     >
       <View style={styles.overlay}>
         {!isRunning && <Text style={styles.title}>Modo Enfoque</Text>}
-
-        <Text style={styles.timer}>
-          {focusModeController.formatTime(timeLeft)}
-        </Text>
-
+        <Text style={styles.timer}>{focusModeController.formatTime(timeLeft)}</Text>
         {!isRunning && (
           <View style={styles.inputContainer}>
             <TextInput
@@ -107,20 +134,17 @@ export default function FocusModeViews({ route, navigation }) {
             </TouchableOpacity>
           </View>
         )}
-
         <TouchableOpacity
           style={[styles.button, isRunning ? styles.buttonStop : styles.buttonStart]}
           onPress={() => setIsRunning(r => !r)}
         >
-          <Text style={styles.buttonText}>
-            {isRunning ? "Pausar" : "Iniciar"}
-          </Text>
+          <Text style={styles.buttonText}>{isRunning ? "Pausar" : "Iniciar"}</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           style={styles.buttonReset}
           onPress={() => {
             setIsRunning(false);
+            cleanupSound();
             const secs = userTime * 60;
             setInitialSeconds(secs);
             setTimeLeft(secs);
@@ -128,9 +152,14 @@ export default function FocusModeViews({ route, navigation }) {
         >
           <Text style={styles.buttonText}>Reiniciar</Text>
         </TouchableOpacity>
-
         {!isRunning && (
-          <TouchableOpacity style={styles.buttonBack} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.buttonBack}
+            onPress={() => {
+              cleanupSound();
+              navigation.goBack();
+            }}
+          >
             <Text style={styles.buttonText}>Volver al Inicio</Text>
           </TouchableOpacity>
         )}
@@ -139,6 +168,7 @@ export default function FocusModeViews({ route, navigation }) {
   );
 }
 
+// ...styles como antes...
 const styles = StyleSheet.create({
   backgroundImage: { flex: 1, width: '100%', height: '100%' },
   overlay: {

@@ -3,12 +3,10 @@ import { addDeletedTask } from '../../Components/deletedTasksStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const taskController = {
-
   getTasks: async () => {
     return await tasksModel.getAllTasks();
   },
 
- 
   getTasksByUserId: async (userId) => {
     return await tasksModel.getTasksByUser(userId);
   },
@@ -87,6 +85,19 @@ const taskController = {
     const task = await tasksModel.getTaskById(taskId);
     await addDeletedTask(task);
     return await tasksModel.deleteTask(taskId);
+  },
+
+  /** Obtiene el resumen de FocusTime para el usuario autenticado */
+  getFocusSummaryByUserId: async () => {
+    const userId = await AsyncStorage.getItem('userId');
+    if (!userId) throw new Error('Usuario no autenticado');
+    try {
+      const summary = await tasksModel.getFocusSummary(userId);
+      return summary; // array de { task_id, task_title, total_minutes }
+    } catch (err) {
+      console.error(`Error al obtener resumen de focus-time para usuario ${userId}:`, err.message);
+      throw err;
+    }
   }
 };
 

@@ -49,29 +49,22 @@ function MoreMenuButton({ color, size }) {
       <List.Item
         title="Perfil"
         description="Administra tu cuenta"
-        left={props => <List.Icon {...props} icon="person-circle-outline" color={themeColors.primary} />}
+        left={props => <List.Icon {...props} icon="account-circle-outline" color={themeColors.primary} />}
         onPress={() => { setVisible(false); navigation.navigate("Perfil"); }}
       />
       <Divider />
       <List.Item
         title="Progreso"
         description="Estadísticas de productividad"
-        left={props => <List.Icon {...props} icon="bar-chart-outline" color={themeColors.primary} />}
+        left={props => <List.Icon {...props} icon="chart-bar" color={themeColors.primary} />}
         onPress={() => { setVisible(false); navigation.navigate("Progreso"); }}
       />
       <Divider />
       <List.Item
         title="Historial"
         description="Tareas eliminadas"
-        left={props => <List.Icon {...props} icon="trash-outline" color={themeColors.primary} />}
+        left={props => <List.Icon {...props} icon="trash-can-outline" color={themeColors.primary} />}
         onPress={() => { setVisible(false); navigation.navigate("Historial"); }}
-      />
-      <Divider />
-      <List.Item
-        title="Enfoque"
-        description="Modo concentración"
-        left={props => <List.Icon {...props} icon="timer-outline" color={themeColors.primary} />}
-        onPress={() => { setVisible(false); navigation.navigate("FocusModeViews"); }}
       />
     </Menu>
   );

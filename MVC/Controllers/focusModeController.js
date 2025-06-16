@@ -1,18 +1,50 @@
-// ../Controllers/focusModeController.js
+// Controllers/focusModeController.js
 import { Audio } from "expo-av";
 import { Alert } from "react-native";
-import focusModeModel from "../Models/focusModeModel.js";
+import focusModeModel from "../Models/focusModeModel";
 
 const focusModeController = {
+  /**
+   * Reproduce el sonido de alarma y devuelve la instancia Audio.Sound.
+   * Quien llame debe guardar la instancia para poder detenerla luego.
+   * @returns {Promise<Audio.Sound | null>}
+   */
   playSound: async () => {
     try {
-      const { sound } = await Audio.Sound.createAsync({ uri: focusModeModel.alarmUrl });
+      // Asegúrate de que alarmUrl esté definido en el modelo (asset local o URL directa .mp3)
+      const { sound } = await Audio.Sound.createAsync(focusModeModel.alarmUrl);
+      // Guarda la instancia antes de reproducir para poder detenerla externamente
+      // Reproduce el sonido
       await sound.playAsync();
+      return sound;
     } catch (error) {
       console.error("Error al reproducir sonido:", error);
+      return null;
     }
   },
 
+  /**
+   * Dado un objeto Audio.Sound, lo detiene y descarga.
+   * @param {Audio.Sound} soundInstance 
+   * @returns {Promise<void>}
+   */
+  stopSound: async (soundInstance) => {
+    try {
+      if (!soundInstance) return;
+      // Detener reproducción si está sonando
+      // stopAsync detiene, luego unloadAsync libera recursos
+      await soundInstance.stopAsync().catch(() => {});
+      await soundInstance.unloadAsync().catch(() => {});
+    } catch (error) {
+      console.warn("Error al detener/destruir sonido:", error);
+    }
+  },
+
+  /**
+   * Formatea segundos a MM:SS
+   * @param {number} seconds 
+   * @returns {string}
+   */
   formatTime: (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -35,24 +67,16 @@ const focusModeController = {
    * @param {number} minutesSpent 
    */
   postFocusTime: (taskId, minutesSpent) => {
-    // Delegamos la llamada HTTP al modelo
     return focusModeModel.createFocusTime(taskId, minutesSpent);
   },
 
-  /**
-   * Obtiene todos los registros de FocusTime para una tarea
-   * @param {string} taskId 
-   */
-  getFocusTimesByTask: async (taskId) => {
-    try {
-      const res = await fetch(`${focusModeModel.apiBaseUrl}/tasks/${taskId}/focus-times`);
-      if (!res.ok) throw new Error(`Status ${res.status}`);
-      return await res.json();
-    } catch (e) {
-      console.error("Error obteniendo FocusTimes:", e);
-      return [];
-    }
-  }
+  getFocusTimesByTask: (taskId) => {
+    return focusModeModel.getFocusTimesByTask(taskId);
+  },
+
+  updateFocusTime: (focusId, minutes) => {
+    return focusModeModel.updateFocusTime(focusId, minutes);
+  },
 };
 
 export default focusModeController;

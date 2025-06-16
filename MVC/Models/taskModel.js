@@ -1,4 +1,3 @@
-// models/tasksModel.js
 import api from '../../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -117,7 +116,18 @@ const tasksModel = {
       console.error(`Error al eliminar tarea ${taskId}:`, err.message);
       throw err;
     }
-  }
+  },
+
+  /** Obtiene el resumen de FocusTime (total minutos por tarea) para el usuario */
+  getFocusSummary: async (userId) => {
+    try {
+      const res = await api.get(`/focus-times/summary/${userId}`);
+      return res.data; // espera array de { task_id, task_title, total_minutes }
+    } catch (err) {
+      console.error(`Error al obtener resumen de focus-time para usuario ${userId}:`, err.message);
+      throw err;
+    }
+  },
 };
 
 export default tasksModel;

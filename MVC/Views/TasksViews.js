@@ -1,3 +1,4 @@
+// Views/TasksView.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -43,16 +44,11 @@ export default function TasksView({ navigation }) {
 
   const load = async () => {
     const all = await tasksController.getTasks();
-    // Separar justificación del título si no viene en el campo
     const parsed = all.map(t => {
       if ((t.justification === undefined || t.justification === '') &&
           t.title.includes(' - Justificación: ')) {
         const parts = t.title.split(' - Justificación: ');
-        return {
-          ...t,
-          title: parts[0],
-          justification: parts[1] || ''
-        };
+        return { ...t, title: parts[0], justification: parts[1] || '' };
       }
       return t;
     });
@@ -120,7 +116,7 @@ export default function TasksView({ navigation }) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: palette.background }]}>  
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       <View style={styles.safeSpacer} />
       <View style={styles.searchSpacer} />
 
@@ -178,20 +174,25 @@ export default function TasksView({ navigation }) {
 
       <ScrollView contentContainerStyle={styles.list}>
         {sortByStatus(filtered).map(t => (
-          <View key={t.id} style={styles.taskRow}>
-            <TouchableOpacity style={styles.taskCard} onPress={() => openForm(t)}>
+          <Card
+            key={t.id}
+            style={[styles.taskCard, { backgroundColor: palette.surface }]}
+            elevation={2}
+          >
+            <TouchableOpacity onPress={() => openForm(t)} activeOpacity={0.7}>
               <TaskItem task={t} onToggle={toggle} onDelete={del} />
             </TouchableOpacity>
-            <Button
-              mode="outlined"
-              compact
-              onPress={() => navigation.navigate('FocusModeViews', { taskId: t.id })}
-              style={styles.focusBtn}
-              textColor={palette.primary}
-            >
-              Enfocar
-            </Button>
-          </View>
+            <Card.Actions style={styles.cardActions}>
+              <Button
+                mode="text"
+                compact
+                onPress={() => navigation.navigate('FocusModeViews', { taskId: t.id })}
+                textColor={palette.primary}
+              >
+                Enfocar
+              </Button>
+            </Card.Actions>
+          </Card>
         ))}
         {!filtered.length && (
           <Text style={[styles.empty, { color: palette.outline }]}>No hay tareas</Text>
@@ -261,9 +262,19 @@ const styles = StyleSheet.create({
   bar: { height: 6, borderRadius: 4 },
 
   list: { paddingHorizontal: 8, paddingBottom: 100 },
-  taskRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  taskCard: { flex: 1 },
-  focusBtn: { marginLeft: 8 },
+
+  // Estilos para las tarjetas de tarea con botón integrado
+  taskCard: {
+    marginHorizontal: 12,
+    marginBottom: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  cardActions: {
+    justifyContent: 'flex-end',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
 
   empty: { textAlign: 'center', marginTop: 20 },
 

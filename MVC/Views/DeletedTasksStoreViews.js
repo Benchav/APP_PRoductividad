@@ -149,7 +149,7 @@ export default function DeletedTasksStoreViews({ navigation }) {
                         style={styles.metaIcon}
                       />
                       <Text style={{ color: palette.outline, fontSize: 12 }}>
-                        {moment(task.due_date).format('LL')}
+                        {moment(task.due_date, "DD-MM-YYYY").format("LL")}
                       </Text>
                     </View>
                   </View>
